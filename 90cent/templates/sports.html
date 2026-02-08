@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 Sports Command Center - WATCHER SPORTS</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/scanner.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sports.css') }}">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Russo+One&display=swap"
+        rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="sports-nav">
+        <div class="nav-brand">
+            <span class="brand-icon">🏆</span>
+            <span class="brand-text">POLY<span class="highlight">SPORTS</span></span>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="nav-link scanner-link">Scanner</a>
+            <a href="#" class="nav-link sports-link active">Sports Center</a>
+            <a href="/sports_leaderboard" class="nav-link leaderboard-link">Leaderboard</a>
+        </div>
+        <div class="nav-status">
+            <span class="status-dot"></span>
+            LIVE DATA FEED
+        </div>
+    </nav>
+
+    <!-- Live Ticker -->
+    <div class="ticker-wrap">
+        <div class="ticker" id="news-ticker">
+            <div class="ticker-item">Initializing WATCHER SPORTS Feed...</div>
+        </div>
+    </div>
+
+    <main class="sports-container">
+        <!-- Hero: Match of the Moment -->
+        <section class="hero-match" id="hero-match">
+            <div class="hero-loading">
+                <div class="spinner"></div>
+                <div>Locating Top Event...</div>
+            </div>
+        </section>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Left: Match Lists -->
+            <div class="match-column">
+                <!-- Value Bets Panel -->
+                <div class="section-header" id="value-bets-header" style="display: none;">
+                    <h2>💰 Value Bets (EV+)</h2>
+                    <div class="tooltip-container">
+                        <span class="info-icon">ⓘ</span>
+                        <div class="tooltip-text">
+                            <strong>Value Bets (EV+)</strong><br>
+                            Bets where the probability of winning is higher than the implied odds. Positive Expected
+                            Value (EV+) indicates a mathematical edge over the bookmaker.
+                        </div>
+                    </div>
+                    <div class="live-badge" style="background: #00ff88; color: #000;">ALPHA</div>
+                </div>
+                <div class="match-list" id="value-bets-feed" style="margin-bottom: 30px; display: none;">
+                    <!-- Value bets inserted here -->
+                </div>
+
+                <div class="section-header">
+                    <h2>Live Action</h2>
+                    <div class="live-badge">LIVE</div>
+                </div>
+                <div class="match-list" id="live-matches">
+                    <!-- Live matches inserted here -->
+                </div>
+
+                <div class="section-header mt-large">
+                    <h2>Upcoming Highlights</h2>
+                </div>
+                <div class="match-list" id="upcoming-matches">
+                    <!-- Upcoming matches inserted here -->
+                </div>
+            </div>
+
+            <!-- Right: Intelligence -->
+            <div class="intel-column">
+                <!-- Whale Tracker Panel -->
+                <div class="intel-panel">
+                    <div class="panel-header">
+                        <h3>🐋 Sports Whale Tracker</h3>
+                    </div>
+                    <div class="news-feed" id="sports-whale-feed">
+                        <div class="placeholder-text">Scanning for heavy hitters...</div>
+                    </div>
+                </div>
+
+                <div class="intel-panel mt-medium">
+                    <div class="panel-header">
+                        <h3>🧠 LIVE AI PREDICTIONS</h3>
+                        <button id="run-backtest-btn" class="nav-link"
+                            style="font-size: 0.8rem; padding: 4px 12px; cursor: pointer; float: right;">Run
+                            Backtest</button>
+                    </div>
+                    <div class="intel-grid" id="ai-intel">
+                        <!-- Multi-Agent Cards inserted here -->
+                        <div class="placeholder-text">Waiting for council consensus...</div>
+                    </div>
+                </div>
+
+                <div class="intel-panel mt-medium">
+                    <div class="panel-header">
+                        <h3>📰 Market News</h3>
+                    </div>
+                    <div class="news-feed" id="news-feed">
+                        <!-- News items inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Backtest Modal -->
+    <div id="backtest-modal" class="modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
+        <div class="modal-content"
+            style="background: #1a1a1a; margin: 5% auto; padding: 20px; width: 80%; max-width: 800px; border-radius: 12px; border: 1px solid #333;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <h2>AI Signals Backtest Results</h2>
+                <span class="close-modal" style="cursor: pointer; font-size: 24px;">&times;</span>
+            </div>
+            <div id="backtest-results" style="color: #ccc; max-height: 600px; overflow-y: auto;">
+                <div class="spinner"></div> Running backtest on top markets...
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/sports.js') }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,53 @@
+# Sensitive files - NEVER COMMIT
+.env
+**/.env
+config.py
+**/config.py
+*.env
+.env.*
+
+# Database files (too large)
+*.db
+historical_data.db
+historical_data_old.db
+trades.db
+
+# Log files
+*.log
+trading_bot.log
+sniper_bot.log
+test_bot.log
+
+# Archive files
+*.rar
+*.zip
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# IDE & local config
+.vscode/
+.idea/
+.claude/
+.claim_lock
+
+# Temp files
+nul
+*.tmp
+
+# JSON data files that may contain sensitive info
+market_resolution_cache.json
+watcher_alerts.json
+watcher_points.json
+test_watcher_points.json
+test_positions.json
+
+# User-specific data files
+positions.json
+pnl_reset.json
+
+# Keep these files
+!requirements.txt

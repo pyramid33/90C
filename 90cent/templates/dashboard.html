@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>90cent | Trading Bot Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <header>
+            <div class="logo-section">
+                <h1>90CENT $NIPERS BOT</h1>
+            </div>
+            <div class="header-tools">
+                <button class="refresh-btn" onclick="refreshDashboard()" title="Refresh Dashboard"
+                    style="display:flex;align-items:center;gap:6px;background:rgba(61,138,255,0.1);border:1px solid rgba(255,255,255,0.1);padding:8px 16px;border-radius:20px;color:#fff;cursor:pointer;font-size:14px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16" />
+                    </svg>
+                    Refresh
+                </button>
+                <div class="status-badge">
+                    <div class="status-dot"></div>
+                    <span>BOT ACTIVE</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Summary Statistics -->
+        <div class="stats-grid">
+            <div class="card">
+                <div class="card-label">USDC BALANCE</div>
+                <div class="card-value" id="balance-val">$0.00</div>
+            </div>
+            <div class="card">
+                <div class="card-label">TOTAL P&L</div>
+                <div class="card-value" id="pnl-val">$0.00</div>
+            </div>
+            <div class="card">
+                <div class="card-label">TOTAL ROI</div>
+                <div class="card-value" id="roi-val">0.00%</div>
+            </div>
+            <div class="card">
+                <div class="card-label">WIN RATE</div>
+                <div class="card-value" id="winrate-val">0%</div>
+                <div class="card-subtext" id="winloss-val" style="color:#8b949e;font-size:0.8rem"></div>
+            </div>
+        </div>
+
+        <!-- Positions Row: Redeemable + Active Positions side by side -->
+        <div class="positions-row">
+            <div class="card redeemable-card" id="redeemable-card">
+                <div class="card-label">REDEEMABLE</div>
+                <div class="card-value positive" id="redeemable-val">$0.00</div>
+                <div class="card-subtext" id="redeemable-count" style="color:#8b949e;font-size:0.8rem">0 positions</div>
+                <button class="claim-btn" id="claim-btn" onclick="claimAll()" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                    Claim All
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-label">ACTIVE POSITIONS</div>
+                <div class="table-wrapper mini-table" style="border:none;background:transparent;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>MARKET</th>
+                                <th>SIDE</th>
+                                <th>SHARES</th>
+                                <th>AVG PRICE</th>
+                                <th>VALUE</th>
+                                <th>LAST UPDATE</th>
+                            </tr>
+                        </thead>
+                        <tbody id="positions-body">
+                            <!-- Positions populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Performance -->
+        <div class="section-title">RECENT PERFORMANCE</div>
+        <div class="recent-perf-grid">
+            <div class="perf-card">
+                <div class="perf-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                </div>
+                <div class="perf-content">
+                    <div class="perf-label">24H P&L</div>
+                    <div class="perf-value" id="pnl-24h">$0.00</div>
+                    <div class="perf-subtext" id="trades-24h">0 trades</div>
+                </div>
+                <div class="perf-trend" id="trend-24h">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                        <polyline points="17 6 23 6 23 12" />
+                    </svg>
+                </div>
+            </div>
+            <div class="perf-card">
+                <div class="perf-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                </div>
+                <div class="perf-content">
+                    <div class="perf-label">7D P&L</div>
+                    <div class="perf-value" id="pnl-7d">$0.00</div>
+                    <div class="perf-subtext" id="trades-7d">0 trades</div>
+                </div>
+                <div class="perf-trend" id="trend-7d">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                        <polyline points="17 6 23 6 23 12" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Markets -->
+        <div class="section-title">LIVE MARKETS</div>
+        <div class="markets-grid" id="markets-grid">
+            <!-- Markets populated via JS -->
+        </div>
+
+        <div class="visual-row">
+            <!-- PNL Chart -->
+            <div class="card">
+                <div class="section-title">DAILY PERFORMANCE</div>
+                <div style="height: 300px;">
+                    <canvas id="pnlChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Trades -->
+            <div class="card">
+                <div class="section-title">RECENT ACTIVITY</div>
+                <div class="trade-feed" id="trade-feed">
+                    <!-- Trades populated via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Strategy Performance Audit -->
+        <div class="section-title">STRATEGY PERFORMANCE</div>
+        <div class="analytics-grid">
+            <div class="card">
+                <div class="card-label">MARKET PERFORMANCE</div>
+                <div class="table-wrapper mini-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>MARKET</th>
+                                <th>PnL</th>
+                                <th>WIN %</th>
+                            </tr>
+                        </thead>
+                        <tbody id="market-perf-body">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-label" style="display:flex;align-items:center;justify-content:space-between;">
+                    <span>HOURLY PnL</span>
+                    <div class="hourly-nav" style="display:flex;align-items:center;gap:8px;">
+                        <button class="hourly-nav-btn" id="hourly-prev" onclick="changeHourlyDay(-1)" title="Previous day">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                        </button>
+                        <span id="hourly-date-label" style="font-size:0.75rem;color:#ccc;min-width:80px;text-align:center;">ALL TIME</span>
+                        <button class="hourly-nav-btn" id="hourly-next" onclick="changeHourlyDay(1)" title="Next day">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div style="flex:1; min-height:150px;">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-label">P&L PROJECTION</div>
+                <div class="stat-row">
+                    <span>Avg Daily:</span>
+                    <span id="pred-daily" class="positive">$0.00</span>
+                </div>
+                <div class="stat-row">
+                    <span>Next 7d:</span>
+                    <span id="pred-7d" class="positive">$0.00</span>
+                </div>
+                <div class="stat-row">
+                    <span>Next 30d:</span>
+                    <span id="pred-30d" class="positive">$0.00</span>
+                </div>
+                <div class="stat-row">
+                    <span>Next 60d:</span>
+                    <span id="pred-60d" class="positive">$0.00</span>
+                </div>
+                <div class="stat-row">
+                    <span>Next 90d:</span>
+                    <span id="pred-90d" class="positive">$0.00</span>
+                </div>
+                <div class="stat-row">
+                    <span>Next 180d:</span>
+                    <span id="pred-180d" class="positive">$0.00</span>
+                </div>
+                <div class="stat-row">
+                    <span>Next 1y:</span>
+                    <span id="pred-1y" class="positive">$0.00</span>
+                </div>
+                <div style="flex:1; min-height:80px; margin-top: 6px;">
+                    <canvas id="predictionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- P&L Heatmap -->
+        <div class="section-title">P&L HEATMAP</div>
+        <div class="card" style="margin-bottom: 2rem; overflow-x: auto;">
+            <div class="card-label">PROFIT BY DAY &amp; HOUR</div>
+            <div id="heatmap-container" class="heatmap-container">
+                <!-- Populated via JS -->
+            </div>
+        </div>
+
+        <!-- PnL Breakdown Charts -->
+        <div class="section-title">PNL BREAKDOWN</div>
+        <div class="pnl-charts-grid">
+            <div class="card">
+                <div class="card-label">DAILY PnL</div>
+                <div style="height: 180px;">
+                    <canvas id="dailyPnlChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-label">WEEKLY PnL</div>
+                <div style="height: 180px;">
+                    <canvas id="weeklyPnlChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-label">MONTHLY PnL</div>
+                <div style="height: 180px;">
+                    <canvas id="monthlyPnlChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-label">ALL-TIME PnL</div>
+                <div style="height: 180px;">
+                    <canvas id="alltimePnlChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <a href="https://nine0cent-leaderboard.onrender.com" target="_blank" class="section-title" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">LEADERBOARD <span style="font-size:0.7em;color:#3d8aff;">&#x2197;</span></a>
+        <div class="card" style="margin-bottom: 2rem; overflow-x: auto;">
+            <div class="card-label">GLOBAL RANKINGS</div>
+            <div class="table-wrapper mini-table" style="border:none;background:transparent;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>USER</th>
+                            <th>TOTAL P&L</th>
+                            <th>24H</th>
+                            <th>WIN RATE</th>
+                            <th>W/L</th>
+                            <th>ROI</th>
+                            <th>TRADES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <tr><td colspan="8" style="text-align:center;color:#8b949e;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <script>
+            let pnlChart = null;
+
+            function renderMarketCard(m) {
+                let countdownHtml = '';
+                if (m.resolved) {
+                    countdownHtml = '<span class="resolved-badge">RESOLVED</span>';
+                } else if (m.end_date) {
+                    const endDate = new Date(m.end_date);
+                    const now = new Date();
+                    const diff = endDate - now;
+                    if (diff > 0) {
+                        const hours = Math.floor(diff / (1000 * 60 * 60));
+                        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+                        if (hours > 24) {
+                            const days = Math.floor(hours / 24);
+                            countdownHtml = `<span class="countdown">${days}d ${hours % 24}h</span>`;
+                        } else if (hours > 0) {
+                            countdownHtml = `<span class="countdown">${hours}h ${mins}m</span>`;
+                        } else if (mins > 0) {
+                            countdownHtml = `<span class="countdown urgent">${mins}m ${secs}s</span>`;
+                        } else {
+                            countdownHtml = `<span class="countdown urgent">${secs}s</span>`;
+                        }
+                    } else {
+                        countdownHtml = '<span class="countdown urgent">Resolving...</span>';
+                    }
+                }
+                const binanceInfo = m.binance_price ? `<div class="binance-price">Binance: $${m.binance_price.toLocaleString()}</div>` : '';
+                const enabled = m.enabled !== false;
+                const toggleLabel = enabled ? 'ON' : 'OFF';
+                const toggleClass = enabled ? 'toggle-on' : 'toggle-off';
+
+                return `
+                    <div class="market-card ${m.resolved ? 'resolved' : ''} ${!enabled ? 'market-disabled' : ''}">
+                        <div class="market-header">
+                            <div class="market-name">${m.name}</div>
+                            <div class="market-countdown">${countdownHtml}</div>
+                        </div>
+                        <div class="market-prices">
+                            <div class="price-box yes">
+                                <span class="price-label">UP</span>
+                                <span class="price-value">${m.yes_price ? '$' + m.yes_price.toFixed(3) : '-'}</span>
+                            </div>
+                            <div class="price-box no">
+                                <span class="price-label">DOWN</span>
+                                <span class="price-value">${m.no_price ? '$' + m.no_price.toFixed(3) : '-'}</span>
+                            </div>
+                        </div>
+                        ${binanceInfo}
+                        <div class="market-footer">
+                            <span class="market-spread">Spread: ${m.spread !== null ? m.spread + '%' : '-'}</span>
+                            <button class="market-toggle ${toggleClass}" onclick="toggleMarket('${m.symbol}', ${!enabled})">
+                                ${toggleLabel}
+                            </button>
+                        </div>
+                    </div>`;
+            }
+
+            async function toggleMarket(symbol, enable) {
+                try {
+                    await fetch('/api/toggle-market', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({symbol: symbol, enabled: enable})
+                    });
+                    updateMarketPrices();
+                } catch(e) {
+                    console.error('Toggle failed', e);
+                }
+            }
+
+            async function updateDashboard() {
+                try {
+                    // Fetch Summary
+                    const summaryRes = await fetch('/api/summary');
+                    const summary = await summaryRes.json();
+
+                    document.getElementById('balance-val').innerText = `$${summary.balance.toFixed(2)}`;
+
+                    const pnlEl = document.getElementById('pnl-val');
+                    pnlEl.innerText = `${summary.total_pnl >= 0 ? '+' : ''}$${summary.total_pnl.toFixed(2)}`;
+                    pnlEl.className = `card-value ${summary.total_pnl >= 0 ? 'positive' : 'negative'}`;
+
+                    const roiEl = document.getElementById('roi-val');
+                    roiEl.innerText = `${summary.total_roi.toFixed(2)}%`;
+                    roiEl.className = `card-value ${summary.total_roi >= 0 ? 'positive' : 'negative'}`;
+
+                    const winrateEl = document.getElementById('winrate-val');
+                    winrateEl.innerText = `${summary.win_rate || 0}%`;
+                    winrateEl.className = `card-value ${(summary.win_rate || 0) >= 50 ? 'positive' : 'negative'}`;
+                    document.getElementById('winloss-val').innerText = `${summary.wins || 0}W / ${summary.losses || 0}L`;
+
+                    // Update 24h/7d Performance
+                    const pnl24h = summary.pnl_24h || 0;
+                    const pnl7d = summary.pnl_7d || 0;
+
+                    const pnl24hEl = document.getElementById('pnl-24h');
+                    pnl24hEl.innerText = `${pnl24h >= 0 ? '+' : ''}$${pnl24h.toFixed(2)}`;
+                    pnl24hEl.className = `perf-value ${pnl24h >= 0 ? 'positive' : 'negative'}`;
+                    document.getElementById('trades-24h').innerText = `${summary.trades_24h || 0} trades`;
+
+                    const trend24h = document.getElementById('trend-24h');
+                    trend24h.className = `perf-trend ${pnl24h >= 0 ? 'up' : 'down'}`;
+
+                    const pnl7dEl = document.getElementById('pnl-7d');
+                    pnl7dEl.innerText = `${pnl7d >= 0 ? '+' : ''}$${pnl7d.toFixed(2)}`;
+                    pnl7dEl.className = `perf-value ${pnl7d >= 0 ? 'positive' : 'negative'}`;
+                    document.getElementById('trades-7d').innerText = `${summary.trades_7d || 0} trades`;
+
+                    const trend7d = document.getElementById('trend-7d');
+                    trend7d.className = `perf-trend ${pnl7d >= 0 ? 'up' : 'down'}`;
+
+                    // Update Charts (all P&L charts use same data source)
+                    if (summary.daily_pnl.length > 0) {
+                        cachedDailyPnl = summary.daily_pnl;
+                        updateChart(summary.daily_pnl);
+                        updateAlltimeChart(summary.daily_pnl);
+                    }
+
+                    // Fetch Positions
+                    const posRes = await fetch('/api/positions');
+                    const positions = await posRes.json();
+                    const posBody = document.getElementById('positions-body');
+                    posBody.innerHTML = positions.map(p => `
+                    <tr>
+                        <td style="font-weight:600">${p.market}</td>
+                        <td><span class="side-badge side-${p.side.toLowerCase()}">${p.side}</span></td>
+                        <td>${p.shares}</td>
+                        <td>$${p.avg_price.toFixed(3)}</td>
+                        <td>$${p.value.toFixed(2)}</td>
+                        <td style="color:#8b949e; font-size:0.8rem">${new Date(p.last_update).toLocaleTimeString()}</td>
+                    </tr>
+                `).join('') || '<tr><td colspan="6" style="text-align:center">No active positions</td></tr>';
+
+                    // Fetch Recent Trades
+                    const tradesRes = await fetch('/api/trades');
+                    const trades = await tradesRes.json();
+                    const feed = document.getElementById('trade-feed');
+                    feed.innerHTML = trades.map(t => `
+                    <div class="trade-item">
+                        <div class="trade-header">
+                            <span style="color:#8b949e">${new Date(t.timestamp).toLocaleTimeString()}</span>
+                            <span class="${t.type === 'BUY' ? 'positive' : 'negative'}" style="font-weight:bold">${t.type}</span>
+                        </div>
+                        <div class="trade-details">
+                            <span style="font-weight:600">${t.market || t.condition_id.substring(0, 10) + '...'}</span>
+                            <span>${t.side || ''} ${t.size} @ $${t.price.toFixed(3)}</span>
+                            <span>$${t.value.toFixed(2)}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                    // Fetch Redeemable Positions
+                    await updateRedeemable();
+
+                    // Fetch Live Markets
+                    const marketsRes = await fetch('/api/markets');
+                    const markets = await marketsRes.json();
+                    const marketsGrid = document.getElementById('markets-grid');
+                    marketsGrid.innerHTML = markets.map(renderMarketCard).join('') || '<div style="color:#8b949e">No markets configured</div>';
+
+                    // New Enhancements
+                    await updateAnalytics();
+
+                } catch (e) {
+                    console.error("Dashboard update failed", e);
+                }
+            }
+
+            let hourlyChart = null;
+            let hourlyByDateData = {};   // { "2026-02-05": [{hour, pnl}, ...], ... }
+            let hourlyAllTimeData = [];  // [{hour, pnl}, ...]  (aggregated)
+            let hourlyDates = [];        // sorted list of available dates
+            let hourlyDateIndex = -1;    // -1 = "ALL TIME", 0..n = specific date
+
+            function changeHourlyDay(delta) {
+                if (hourlyDates.length === 0) return;
+
+                hourlyDateIndex += delta;
+                // Clamp: -1 = ALL TIME, 0..length-1 = specific dates
+                if (hourlyDateIndex < -1) hourlyDateIndex = -1;
+                if (hourlyDateIndex >= hourlyDates.length) hourlyDateIndex = hourlyDates.length - 1;
+
+                renderHourlyChart();
+            }
+
+            function renderHourlyChart() {
+                let pnls, dateLabel;
+
+                if (hourlyDateIndex === -1) {
+                    // All time aggregate
+                    pnls = hourlyAllTimeData.map(d => d.pnl);
+                    dateLabel = 'ALL TIME';
+                } else {
+                    const dateKey = hourlyDates[hourlyDateIndex];
+                    pnls = hourlyByDateData[dateKey].map(d => d.pnl);
+                    // Format as "Feb 5" style
+                    const dt = new Date(dateKey + 'T00:00:00');
+                    dateLabel = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                }
+
+                document.getElementById('hourly-date-label').innerText = dateLabel;
+
+                // Update arrow disabled states
+                document.getElementById('hourly-prev').disabled = (hourlyDateIndex <= -1);
+                document.getElementById('hourly-next').disabled = (hourlyDateIndex >= hourlyDates.length - 1);
+
+                const hours = Array.from({length: 24}, (_, i) => i);
+                const colors = pnls.map(v => v >= 0 ? 'rgba(0, 230, 118, 0.6)' : 'rgba(255, 82, 82, 0.6)');
+
+                if (hourlyChart) {
+                    hourlyChart.data.labels = hours;
+                    hourlyChart.data.datasets[0].data = pnls;
+                    hourlyChart.data.datasets[0].backgroundColor = colors;
+                    hourlyChart.update();
+                } else {
+                    const ctx = document.getElementById('hourlyChart').getContext('2d');
+                    hourlyChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: hours,
+                            datasets: [{
+                                label: 'Hourly PnL',
+                                data: pnls,
+                                backgroundColor: colors,
+                                borderWidth: 0,
+                                borderRadius: 3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                x: { grid: { display: false }, ticks: { color: '#8b949e', font: { size: 10 } } },
+                                y: {
+                                    grid: { color: 'rgba(255,255,255,0.05)' },
+                                    ticks: { color: '#8b949e', font: { size: 10 }, callback: v => '$' + v }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            let dailyPnlChart = null;
+            let weeklyPnlChart = null;
+            let monthlyPnlChart = null;
+            let alltimePnlChart = null;
+            let cachedDailyPnl = [];  // Shared daily P&L data from /api/summary
+            let predictionChart = null;
+
+            function renderPredictionChart(projection) {
+                if (!projection || projection.length === 0) return;
+
+                const labels = projection.map(p => p.label);
+                const values = projection.map(p => p.value);
+                const types = projection.map(p => p.type);
+
+                // Split into actual (solid) and projected (dashed) segments
+                const actualData = values.map((v, i) => types[i] === 'actual' ? v : null);
+                const projectedData = values.map((v, i) => {
+                    // Overlap last actual point so the line connects
+                    if (types[i] === 'projected') return v;
+                    if (i < values.length - 1 && types[i + 1] === 'projected') return v;
+                    return null;
+                });
+
+                const ctx = document.getElementById('predictionChart').getContext('2d');
+
+                if (predictionChart) {
+                    predictionChart.data.labels = labels;
+                    predictionChart.data.datasets[0].data = actualData;
+                    predictionChart.data.datasets[1].data = projectedData;
+                    predictionChart.update();
+                } else {
+                    predictionChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Actual',
+                                    data: actualData,
+                                    borderColor: '#00e676',
+                                    backgroundColor: 'rgba(0, 230, 118, 0.1)',
+                                    borderWidth: 2,
+                                    pointRadius: 2,
+                                    pointBackgroundColor: '#00e676',
+                                    fill: true,
+                                    tension: 0.3,
+                                    spanGaps: false
+                                },
+                                {
+                                    label: 'Projected',
+                                    data: projectedData,
+                                    borderColor: '#3d8aff',
+                                    backgroundColor: 'rgba(61, 138, 255, 0.08)',
+                                    borderWidth: 2,
+                                    borderDash: [5, 3],
+                                    pointRadius: 1.5,
+                                    pointBackgroundColor: '#3d8aff',
+                                    fill: true,
+                                    tension: 0.3,
+                                    spanGaps: false
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: 'rgba(26, 29, 41, 0.95)',
+                                    titleColor: '#fff',
+                                    bodyColor: '#8b949e',
+                                    callbacks: {
+                                        label: ctx => `${ctx.dataset.label}: $${ctx.parsed.y.toFixed(2)}`
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { color: '#8b949e', font: { size: 8 }, maxRotation: 0 }
+                                },
+                                y: {
+                                    grid: { color: 'rgba(255,255,255,0.03)' },
+                                    ticks: { color: '#8b949e', font: { size: 8 }, callback: v => '$' + v }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            function renderHeatmap(hourlyByDate) {
+                const container = document.getElementById('heatmap-container');
+                const dates = Object.keys(hourlyByDate).sort();
+                if (dates.length === 0) {
+                    container.innerHTML = '<div style="color:#8b949e;padding:1rem;">No data yet</div>';
+                    return;
+                }
+
+                // Collect all PnL values to compute color scale
+                let allVals = [];
+                for (const d of dates) {
+                    for (const h of hourlyByDate[d]) {
+                        if (h.pnl !== 0) allVals.push(h.pnl);
+                    }
+                }
+                const maxAbs = Math.max(Math.abs(Math.min(...allVals, 0)), Math.max(...allVals, 0), 0.01);
+
+                function pnlColor(val) {
+                    if (val === 0) return 'rgba(255,255,255,0.03)';
+                    const intensity = Math.min(Math.abs(val) / maxAbs, 1);
+                    if (val > 0) {
+                        const a = 0.15 + intensity * 0.7;
+                        return `rgba(0, 230, 118, ${a.toFixed(2)})`;
+                    } else {
+                        const a = 0.15 + intensity * 0.7;
+                        return `rgba(255, 82, 82, ${a.toFixed(2)})`;
+                    }
+                }
+
+                // Build HTML grid
+                let html = '<div class="heatmap-grid" style="grid-template-columns: 56px repeat(24, 1fr);">';
+
+                // Header row (hours)
+                html += '<div class="heatmap-label"></div>';
+                for (let h = 0; h < 24; h++) {
+                    html += `<div class="heatmap-hour">${h}</div>`;
+                }
+
+                // Data rows (one per date, newest on top)
+                for (const date of [...dates].reverse()) {
+                    const dt = new Date(date + 'T00:00:00');
+                    const dayLabel = dt.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+                    html += `<div class="heatmap-label">${dayLabel}</div>`;
+                    for (const h of hourlyByDate[date]) {
+                        const val = h.pnl;
+                        const title = `${dayLabel} ${h.hour}:00 — ${val >= 0 ? '+' : ''}$${val.toFixed(2)}`;
+                        html += `<div class="heatmap-cell" style="background:${pnlColor(val)}" title="${title}">`;
+                        if (val !== 0) html += `<span>${val > 0 ? '+' : ''}${val.toFixed(1)}</span>`;
+                        html += '</div>';
+                    }
+                }
+
+                html += '</div>';
+
+                // Legend
+                html += '<div class="heatmap-legend">';
+                html += '<span class="negative">Loss</span>';
+                html += '<div class="heatmap-legend-bar"></div>';
+                html += '<span class="positive">Profit</span>';
+                html += '</div>';
+
+                container.innerHTML = html;
+            }
+
+            function createBarChart(canvasId, chartRef, labels, values, label) {
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                if (chartRef) {
+                    chartRef.data.labels = labels;
+                    chartRef.data.datasets[0].data = values;
+                    chartRef.data.datasets[0].backgroundColor = values.map(v => v >= 0 ? 'rgba(0, 230, 118, 0.6)' : 'rgba(255, 82, 82, 0.6)');
+                    chartRef.update();
+                    return chartRef;
+                }
+                return new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: label,
+                            data: values,
+                            backgroundColor: values.map(v => v >= 0 ? 'rgba(0, 230, 118, 0.6)' : 'rgba(255, 82, 82, 0.6)'),
+                            borderWidth: 0,
+                            borderRadius: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: '#8b949e', font: { size: 10 }, maxRotation: 45 } },
+                            y: {
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: { color: '#8b949e', font: { size: 10 }, callback: v => '$' + v }
+                            }
+                        }
+                    }
+                });
+            }
+
+            async function updateAnalytics() {
+                try {
+                    const res = await fetch('/api/analytics');
+                    const data = await res.json();
+
+                    // Market Perf
+                    const mb = document.getElementById('market-perf-body');
+                    mb.innerHTML = data.markets.map(m => `
+                    <tr>
+                        <td style="font-size:0.85rem">${m.market.substring(0, 8)}</td>
+                        <td class="${m.pnl >= 0 ? 'positive' : 'negative'}">$${m.pnl.toFixed(2)}</td>
+                        <td style="color:${m.win_rate >= 50 ? '#00e676' : '#ff5252'}">${m.win_rate.toFixed(0)}%</td>
+                    </tr>
+                `).join('') || '<tr><td colspan="3" class="text-center">No data</td></tr>';
+
+                    // P&L Prediction
+                    if (data.prediction) {
+                        const pred = data.prediction;
+                        const fmtPred = (el, val) => {
+                            el.innerText = `${val >= 0 ? '+' : ''}$${val.toFixed(2)}`;
+                            el.className = val >= 0 ? 'positive' : 'negative';
+                        };
+                        fmtPred(document.getElementById('pred-daily'), pred.projected_daily);
+                        fmtPred(document.getElementById('pred-7d'), pred.projected_7d);
+                        fmtPred(document.getElementById('pred-30d'), pred.projected_30d);
+                        fmtPred(document.getElementById('pred-60d'), pred.projected_60d);
+                        fmtPred(document.getElementById('pred-90d'), pred.projected_90d);
+                        fmtPred(document.getElementById('pred-180d'), pred.projected_180d);
+                        fmtPred(document.getElementById('pred-1y'), pred.projected_1y);
+                        renderPredictionChart(pred.projection);
+                    }
+
+                    // Hourly Chart - store data for day navigation
+                    hourlyAllTimeData = data.hourly;
+                    hourlyByDateData = data.hourly_by_date || {};
+                    hourlyDates = Object.keys(hourlyByDateData).sort();
+
+                    // Default to latest day on first load, keep current selection on refresh
+                    if (hourlyDates.length > 0 && hourlyDateIndex === -1 && !hourlyChart) {
+                        hourlyDateIndex = hourlyDates.length - 1; // Start on latest day
+                    }
+
+                    renderHourlyChart();
+
+                    // P&L Heatmap
+                    renderHeatmap(data.hourly_by_date || {});
+
+                    // Daily/Weekly/Monthly PnL Charts - derived from cachedDailyPnl (same source as main chart)
+                    if (cachedDailyPnl.length > 0) {
+                        const dLabels = cachedDailyPnl.map(d => d.date.substring(5));
+                        const dValues = cachedDailyPnl.map(d => d.pnl);
+                        dailyPnlChart = createBarChart('dailyPnlChart', dailyPnlChart, dLabels, dValues, 'Daily PnL');
+
+                        // Aggregate weekly from daily data
+                        const weeklyMap = {};
+                        cachedDailyPnl.forEach(d => {
+                            const dt = new Date(d.date);
+                            const yr = dt.getFullYear();
+                            const weekStart = new Date(dt);
+                            weekStart.setDate(dt.getDate() - dt.getDay());
+                            const wk = `${weekStart.getMonth()+1}/${weekStart.getDate()}`;
+                            weeklyMap[wk] = (weeklyMap[wk] || 0) + d.pnl;
+                        });
+                        const wLabels = Object.keys(weeklyMap);
+                        const wValues = Object.values(weeklyMap).map(v => Math.round(v * 100) / 100);
+                        weeklyPnlChart = createBarChart('weeklyPnlChart', weeklyPnlChart, wLabels, wValues, 'Weekly PnL');
+
+                        // Aggregate monthly from daily data
+                        const monthlyMap = {};
+                        cachedDailyPnl.forEach(d => {
+                            const mon = d.date.substring(0, 7); // YYYY-MM
+                            monthlyMap[mon] = (monthlyMap[mon] || 0) + d.pnl;
+                        });
+                        const mLabels = Object.keys(monthlyMap);
+                        const mValues = Object.values(monthlyMap).map(v => Math.round(v * 100) / 100);
+                        monthlyPnlChart = createBarChart('monthlyPnlChart', monthlyPnlChart, mLabels, mValues, 'Monthly PnL');
+                    }
+
+                    // All-Time PnL chart is now updated in updateDashboard() using the same data source
+
+                } catch (e) { console.error("Analytics error:", e); }
+            }
+
+            function updateChart(dailyData) {
+                const ctx = document.getElementById('pnlChart').getContext('2d');
+                const labels = dailyData.map(d => d.date);
+                const dailyPnl = dailyData.map(d => d.pnl);
+                const cumulativePnl = dailyData.map(d => d.cumulative);
+
+                if (pnlChart) {
+                    pnlChart.data.labels = labels;
+                    pnlChart.data.datasets[0].data = dailyPnl;
+                    pnlChart.data.datasets[0].backgroundColor = dailyPnl.map(v => v >= 0 ? 'rgba(0, 230, 118, 0.7)' : 'rgba(255, 82, 82, 0.7)');
+                    pnlChart.data.datasets[0].borderColor = dailyPnl.map(v => v >= 0 ? '#00e676' : '#ff5252');
+                    pnlChart.data.datasets[1].data = cumulativePnl;
+                    pnlChart.update();
+                    return;
+                }
+
+                pnlChart = new Chart(ctx, {
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                type: 'bar',
+                                label: 'Daily P&L',
+                                data: dailyPnl,
+                                backgroundColor: dailyPnl.map(v => v >= 0 ? 'rgba(0, 230, 118, 0.7)' : 'rgba(255, 82, 82, 0.7)'),
+                                borderColor: dailyPnl.map(v => v >= 0 ? '#00e676' : '#ff5252'),
+                                borderWidth: 2,
+                                borderRadius: 4,
+                                yAxisID: 'y',
+                                order: 2
+                            },
+                            {
+                                type: 'line',
+                                label: 'Cumulative P&L',
+                                data: cumulativePnl,
+                                borderColor: '#3d8aff',
+                                backgroundColor: 'rgba(61, 138, 255, 0.1)',
+                                borderWidth: 3,
+                                pointBackgroundColor: '#3d8aff',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2,
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                fill: true,
+                                tension: 0.3,
+                                yAxisID: 'y1',
+                                order: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    color: '#8b949e',
+                                    usePointStyle: true,
+                                    padding: 15
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(26, 29, 41, 0.95)',
+                                titleColor: '#fff',
+                                bodyColor: '#8b949e',
+                                borderColor: 'rgba(255,255,255,0.1)',
+                                borderWidth: 1,
+                                padding: 12,
+                                callbacks: {
+                                    label: function (context) {
+                                        const value = context.parsed.y;
+                                        const sign = value >= 0 ? '+' : '';
+                                        return `${context.dataset.label}: ${sign}$${value.toFixed(2)}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                position: 'left',
+                                beginAtZero: true,
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: {
+                                    color: '#8b949e',
+                                    callback: function (value) { return '$' + value; }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Daily P&L',
+                                    color: '#8b949e'
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                position: 'right',
+                                grid: { display: false },
+                                ticks: {
+                                    color: '#3d8aff',
+                                    callback: function (value) { return '$' + value; }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Cumulative',
+                                    color: '#3d8aff'
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#8b949e' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function updateAlltimeChart(dailyData) {
+                const aLabels = dailyData.map(d => d.date.substring(5));
+                const aDailyVals = dailyData.map(d => d.pnl);
+                const aCumVals = dailyData.map(d => d.cumulative);
+                const atCtx = document.getElementById('alltimePnlChart').getContext('2d');
+
+                if (alltimePnlChart) {
+                    alltimePnlChart.data.labels = aLabels;
+                    alltimePnlChart.data.datasets[0].data = aDailyVals;
+                    alltimePnlChart.data.datasets[0].backgroundColor = aDailyVals.map(v => v >= 0 ? 'rgba(0, 230, 118, 0.4)' : 'rgba(255, 82, 82, 0.4)');
+                    alltimePnlChart.data.datasets[1].data = aCumVals;
+                    alltimePnlChart.update();
+                } else {
+                    alltimePnlChart = new Chart(atCtx, {
+                        data: {
+                            labels: aLabels,
+                            datasets: [
+                                {
+                                    type: 'bar',
+                                    label: 'Daily',
+                                    data: aDailyVals,
+                                    backgroundColor: aDailyVals.map(v => v >= 0 ? 'rgba(0, 230, 118, 0.4)' : 'rgba(255, 82, 82, 0.4)'),
+                                    borderWidth: 0,
+                                    borderRadius: 2,
+                                    yAxisID: 'y',
+                                    order: 2
+                                },
+                                {
+                                    type: 'line',
+                                    label: 'Cumulative',
+                                    data: aCumVals,
+                                    borderColor: '#3d8aff',
+                                    backgroundColor: 'rgba(61, 138, 255, 0.1)',
+                                    borderWidth: 2,
+                                    pointRadius: 2,
+                                    pointBackgroundColor: '#3d8aff',
+                                    fill: true,
+                                    tension: 0.3,
+                                    yAxisID: 'y1',
+                                    order: 1
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: { color: '#8b949e', usePointStyle: true, padding: 10, font: { size: 10 } }
+                                }
+                            },
+                            scales: {
+                                x: { grid: { display: false }, ticks: { color: '#8b949e', font: { size: 10 }, maxRotation: 45 } },
+                                y: {
+                                    position: 'left',
+                                    grid: { color: 'rgba(255,255,255,0.05)' },
+                                    ticks: { color: '#8b949e', font: { size: 10 }, callback: v => '$' + v }
+                                },
+                                y1: {
+                                    position: 'right',
+                                    grid: { display: false },
+                                    ticks: { color: '#3d8aff', font: { size: 10 }, callback: v => '$' + v }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Flag to prevent updateRedeemable from interfering during claim
+            let claimInProgress = false;
+
+            // Default button HTML for reset (must be defined before updateRedeemable)
+            const defaultClaimBtnHtml = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            Claim All
+        `;
+
+            // Update redeemable positions
+            async function updateRedeemable() {
+                // Don't touch button while claim is in progress
+                if (claimInProgress) return;
+
+                try {
+                    const res = await fetch('/api/redeemable');
+                    const data = await res.json();
+
+                    const valEl = document.getElementById('redeemable-val');
+                    const countEl = document.getElementById('redeemable-count');
+                    const btn = document.getElementById('claim-btn');
+                    const card = document.getElementById('redeemable-card');
+
+                    valEl.innerText = `$${data.total_value.toFixed(2)}`;
+                    countEl.innerText = `${data.count} position${data.count !== 1 ? 's' : ''}`;
+
+                    // Always restore button to default state when not claiming
+                    // This fixes stuck error states
+                    btn.innerHTML = defaultClaimBtnHtml;
+                    btn.classList.remove('success', 'error');
+
+                    if (data.count > 0 && data.total_value > 0) {
+                        btn.disabled = false;
+                        card.classList.add('has-redeemable');
+                    } else {
+                        btn.disabled = true;
+                        card.classList.remove('has-redeemable');
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch redeemable:', e);
+                }
+            }
+
+            // Reset claim button to default state
+            function resetClaimBtn() {
+                const btn = document.getElementById('claim-btn');
+                btn.innerHTML = defaultClaimBtnHtml;
+                btn.classList.remove('success', 'error');
+                btn.disabled = false;
+                claimInProgress = false;
+            }
+
+            // Claim all redeemable positions
+            async function claimAll() {
+                const btn = document.getElementById('claim-btn');
+                claimInProgress = true;
+                btn.disabled = true;
+                btn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spinning">
+                    <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
+                </svg>
+                Claiming (15s/pos)...
+            `;
+
+                try {
+                    // 5 minute timeout - claims take ~15s each due to rate limits
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 300000);
+
+                    const res = await fetch('/api/claim', {
+                        method: 'POST',
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+                    const data = await res.json();
+                    console.log('Claim response:', data);
+
+                    if (data.status === 'ok' && data.total_value > 0) {
+                        btn.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Claimed $${(data.total_value || 0).toFixed(2)}!
+                    `;
+                        btn.classList.add('success');
+                        claimInProgress = false;
+
+                        // Refresh dashboard after claiming
+                        await updateDashboard();
+
+                        setTimeout(resetClaimBtn, 3000);
+                    } else if (data.errors && data.errors.length > 0) {
+                        // Some or all claims failed
+                        throw new Error(data.errors[0]);
+                    } else if (data.message && data.message.includes('No positions')) {
+                        btn.innerHTML = `No positions to claim`;
+                        setTimeout(resetClaimBtn, 2000);
+                    } else {
+                        throw new Error(data.message || 'Claim failed - check console');
+                    }
+                } catch (e) {
+                    console.error('Claim failed:', e);
+                    const errMsg = (e.message || '').toLowerCase();
+                    const isRateLimit = errMsg.includes('429') || errMsg.includes('rate') || errMsg.includes('too many');
+                    const isTimeout = e.name === 'AbortError' || errMsg.includes('timeout') || errMsg.includes('abort');
+
+                    let displayMsg;
+                    if (isRateLimit) {
+                        displayMsg = 'Rate limited - wait 3 min';
+                    } else if (isTimeout) {
+                        displayMsg = 'Timeout - claims take ~15s each';
+                    } else {
+                        displayMsg = (e.message || '').length > 20 ? 'Error - see console' : (e.message || 'Unknown error');
+                    }
+
+                    btn.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    ${displayMsg}
+                `;
+                    btn.classList.add('error');
+
+                    // Allow updateRedeemable to reset button on next cycle
+                    claimInProgress = false;
+
+                    // Also reset after 5 seconds as backup
+                    setTimeout(resetClaimBtn, 5000);
+                }
+            }
+
+            // Manual refresh function - syncs from Polymarket API
+            async function refreshDashboard() {
+                const btn = document.querySelector('.refresh-btn');
+                btn.classList.add('refreshing');
+                btn.disabled = true;
+
+                try {
+                    // Sync positions from Polymarket first
+                    const syncRes = await fetch('/api/sync-positions', { method: 'POST' });
+                    const syncData = await syncRes.json();
+                    if (syncData.status === 'ok') {
+                        console.log(`Synced ${syncData.synced} positions from Polymarket`);
+                    }
+                } catch (e) {
+                    console.error('Sync failed:', e);
+                }
+
+                // Then update the dashboard
+                await updateDashboard();
+
+                setTimeout(() => {
+                    btn.classList.remove('refreshing');
+                    btn.disabled = false;
+                }, 500);
+            }
+
+            // Fast market price update (runs every 1.5 seconds)
+            async function updateMarketPrices() {
+                try {
+                    const marketsRes = await fetch('/api/markets');
+                    const markets = await marketsRes.json();
+                    const marketsGrid = document.getElementById('markets-grid');
+                    marketsGrid.innerHTML = markets.map(renderMarketCard).join('') || '<div style="color:#8b949e">No markets configured</div>';
+                } catch (e) {
+                    // Silent fail for fast updates - don't spam console
+                }
+            }
+
+            // Leaderboard update (every 30 seconds)
+            async function updateLeaderboard() {
+                try {
+                    const res = await fetch('/api/leaderboard');
+                    const lb = await res.json();
+                    const tbody = document.getElementById('leaderboard-body');
+
+                    if (!lb || lb.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#8b949e;padding:1rem;">No users yet - be the first!</td></tr>';
+                        return;
+                    }
+
+                    tbody.innerHTML = lb.map(u => {
+                        const rankClass = u.rank <= 3 ? `rank-${u.rank}` : '';
+                        const medal = u.rank === 1 ? ' &#x1F947;' : u.rank === 2 ? ' &#x1F948;' : u.rank === 3 ? ' &#x1F949;' : '';
+                        const pnlClass = u.total_pnl >= 0 ? 'positive' : 'negative';
+                        const pnl24Class = u.pnl_24h >= 0 ? 'positive' : 'negative';
+                        const dotHtml = u.is_active
+                            ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#00e676;box-shadow:0 0 6px #00e676;margin-right:6px;"></span>'
+                            : '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#8b949e;opacity:0.4;margin-right:6px;"></span>';
+
+                        return `<tr>
+                            <td style="font-weight:700;${u.rank===1?'color:#ffd700':u.rank===2?'color:#c0c0c0':u.rank===3?'color:#cd7f32':''}">${u.rank}${medal}</td>
+                            <td style="font-weight:600">${dotHtml}${u.username}</td>
+                            <td class="${pnlClass}" style="font-weight:700">${u.total_pnl >= 0 ? '+' : ''}$${u.total_pnl.toFixed(2)}</td>
+                            <td class="${pnl24Class}">${u.pnl_24h >= 0 ? '+' : ''}$${u.pnl_24h.toFixed(2)}</td>
+                            <td style="color:${u.win_rate >= 50 ? '#00e676' : '#ff5252'}">${u.win_rate}%</td>
+                            <td>${u.wins}/${u.losses}</td>
+                            <td class="${u.roi >= 0 ? 'positive' : 'negative'}">${u.roi}%</td>
+                            <td>${u.total_trades}</td>
+                        </tr>`;
+                    }).join('');
+                } catch(e) {
+                    console.debug('Leaderboard update failed:', e);
+                }
+            }
+
+            // Initial update and intervals
+            updateDashboard();
+            updateLeaderboard();
+            setInterval(updateDashboard, 5000);      // Full dashboard every 5s
+            setInterval(updateMarketPrices, 1500);   // Market prices every 1.5s
+            setInterval(updateLeaderboard, 30000);   // Leaderboard every 30s
+        </script>
+    </div>
+</body>
+
+</html>

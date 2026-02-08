@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: 90cent-leaderboard
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn leaderboard_server:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+    plan: free
+    rootDir: leaderboard

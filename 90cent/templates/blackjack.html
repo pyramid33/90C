@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Casino - Market Intelligence Blackjack</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/blackjack.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="blackjack-container">
+        <!-- Header -->
+        <header class="blackjack-header">
+            <div class="header-content">
+                <h1><span class="gradient-text">ELITE CASINO</span> BLACKJACK</h1>
+                <div class="subtitle">Market Intelligence Card Game</div>
+            </div>
+            <div class="balance-display">
+                <div class="balance-icon">💰</div>
+                <div class="balance-info">
+                    <div class="balance-amount" id="balance">1000.00</div>
+                    <div class="balance-currency">USDC</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Bet Input Panel -->
+        <div class="bet-panel">
+            <div class="bet-input-container">
+                <label for="bet-amount" class="bet-label">QUANTUM BET AMOUNT</label>
+                <div class="bet-input-wrapper">
+                    <input type="number" id="bet-amount" class="bet-input" min="10" max="500" value="50" step="10">
+                    <span class="bet-currency">USDC</span>
+                </div>
+                <div class="bet-info">
+                    <span class="bet-range">MIN: <span id="min-bet">10</span> | MAX: <span id="max-bet">500</span></span>
+                </div>
+                <button id="place-bet-btn" class="place-bet-btn">INITIALIZE BET</button>
+            </div>
+        </div>
+
+        <!-- Market Status -->
+        <div class="market-status">
+            <div class="market-header">
+                <h2>BTC Market Intelligence</h2>
+                <div class="market-indicator" id="market-status">● Connected</div>
+            </div>
+
+            <div class="market-stats">
+                <div class="stat-card volatility">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Volatility</div>
+                        <div class="stat-value" id="volatility">--</div>
+                        <div class="stat-desc" id="volatility-desc">Normal</div>
+                    </div>
+                </div>
+
+                <div class="stat-card trend">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Trend Strength</div>
+                        <div class="stat-value" id="trend-strength">--</div>
+                        <div class="stat-desc" id="trend-desc">Neutral</div>
+                    </div>
+                </div>
+
+                <div class="stat-card dealer-rule">
+                    <div class="stat-icon">🎩</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Dealer Rule</div>
+                        <div class="stat-value" id="dealer-rule">Loading...</div>
+                        <div class="stat-desc" id="dealer-desc">Standard</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Area -->
+        <div class="game-area">
+            <!-- Dealer Area -->
+            <div class="dealer-area">
+                <div class="robot-croupier">
+                    <div class="robot-head">
+                        <div class="robot-eye left-eye"></div>
+                        <div class="robot-eye right-eye"></div>
+                        <div class="robot-scanner"></div>
+                    </div>
+                    <div class="robot-body">
+                        <div class="robot-core"></div>
+                        <div class="robot-circuits"></div>
+                    </div>
+                </div>
+                <h3>AI CROUPER X-7</h3>
+                <div class="dealer-hand" id="dealer-hand">
+                    <div class="card-placeholder">INITIALIZE QUANTUM DEAL</div>
+                </div>
+                <div class="dealer-value" id="dealer-value"></div>
+            </div>
+
+            <!-- Game Controls -->
+            <div class="game-controls">
+                <div class="game-buttons">
+                    <button id="deal-btn" class="game-btn deal-btn">
+                        <div class="btn-icon">⚡</div>
+                        <div class="btn-text">QUANTUM DEAL</div>
+                    </button>
+
+                    <button id="hit-btn" class="game-btn hit-btn" disabled>
+                        <div class="btn-icon">⚡</div>
+                        <div class="btn-text">HIT</div>
+                    </button>
+
+                    <button id="stand-btn" class="game-btn stand-btn" disabled>
+                        <div class="btn-icon">🔒</div>
+                        <div class="btn-text">STAND</div>
+                    </button>
+
+                    <button id="market-bet-btn" class="game-btn market-btn" disabled>
+                        <div class="btn-icon">⚡</div>
+                        <div class="btn-text">MARKET ENHANCE</div>
+                    </button>
+                </div>
+
+                <div class="game-status" id="game-status">
+                    <div class="status-message">Welcome to the Elite Casino...</div>
+                </div>
+            </div>
+
+            <!-- Player Area -->
+            <div class="player-area">
+                <h3>NEURAL OPERATOR</h3>
+                <div class="player-hand" id="player-hand">
+                    <div class="card-placeholder">AWAIT QUANTUM INITIALIZATION</div>
+                </div>
+                <div class="player-value" id="player-value"></div>
+                <div class="market-bet-indicator" id="market-bet-indicator">
+                    <span class="market-bet-icon">⚡</span>
+                    <span class="market-bet-text">MARKET ENHANCEMENT ACTIVE</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- House Rules -->
+        <div class="rules-section">
+            <h3>House Rules & Market Dynamics</h3>
+            <div class="rules-grid">
+                <div class="rule-item">
+                    <div class="rule-icon">🎲</div>
+                    <div class="rule-text">
+                        <strong>Market Volatility:</strong> High volatility makes the dealer more aggressive and face cards more valuable
+                    </div>
+                </div>
+                <div class="rule-item">
+                    <div class="rule-icon">📈</div>
+                    <div class="rule-text">
+                        <strong>Trend Strength:</strong> Strong market trends affect ace values and dealer conservatism
+                    </div>
+                </div>
+                <div class="rule-item">
+                    <div class="rule-icon">🃏</div>
+                    <div class="rule-text">
+                        <strong>Card Values:</strong> Face cards (J/Q/K) worth more in volatile markets, aces behave differently in trending markets
+                    </div>
+                </div>
+                <div class="rule-item">
+                    <div class="rule-icon">📊</div>
+                    <div class="rule-text">
+                        <strong>Market Bet:</strong> Activate to add +1 to all your cards, improving your hand value
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="blackjack-footer">
+            <div class="footer-content">
+                <div class="disclaimer">
+                    ⚠️ <strong>Demo:</strong> This is a demonstration. Real gambling involves risks.
+                </div>
+                <div class="powered-by">
+                    Powered by Advanced Market Intelligence • Elite Casino Experience
+                </div>
+            </div>
+        </footer>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loading-overlay">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <div class="loading-text">Initializing Market Intelligence...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/blackjack.js') }}"></script>
+</body>
+</html>

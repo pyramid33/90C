@@ -1,0 +1,1968 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Leaderboard - PvP Arena</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@400;700;900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-primary: #050508;
+            --bg-secondary: #0a0a12;
+            --bg-card: #12121f;
+            --bg-card-hover: #1a1a2e;
+            --accent-cyan: #00f3ff;
+            --accent-green: #00ff88;
+            --accent-purple: #ff00ff;
+            --accent-gold: #ffd700;
+            --accent-silver: #c0c0c0;
+            --accent-bronze: #cd7f32;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --border-color: #22223a;
+            --glow-cyan: 0 0 15px rgba(0, 243, 255, 0.3);
+            --glow-purple: 0 0 15px rgba(255, 0, 255, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .arena-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1a1a3a 0%, #050508 100%);
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 60px 20px;
+            position: relative;
+        }
+
+        .header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 10px rgba(0, 243, 255, 0.5));
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            color: var(--accent-cyan);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            padding: 8px 16px;
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 4px;
+            background: rgba(0, 243, 255, 0.05);
+            z-index: 1100;
+            cursor: pointer;
+        }
+
+        .back-link:hover {
+            background: rgba(0, 243, 255, 0.15);
+            box-shadow: var(--glow-cyan);
+            transform: translateX(-5px);
+        }
+
+        /* Sport Selector */
+        .sport-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .sport-tab {
+            padding: 12px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .sport-tab:hover {
+            border-color: var(--accent-cyan);
+            color: var(--text-primary);
+        }
+
+        .sport-tab.active {
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.2), rgba(255, 0, 255, 0.1));
+            border-color: var(--accent-cyan);
+            color: var(--text-primary);
+            box-shadow: var(--glow-cyan);
+        }
+
+        /* PvP Arena Layout */
+        .pvp-arena {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+        }
+
+        /* Leaderboard Table */
+        .leaderboard-container {
+            background: var(--bg-card);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-table th {
+            text-align: left;
+            padding: 15px 10px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .trader-row {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .trader-row:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .trader-row.top-3 {
+            background: rgba(0, 243, 255, 0.03);
+        }
+
+        .trader-row td {
+            padding: 12px 10px;
+            vertical-align: middle;
+        }
+
+        .rank-cell {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            width: 60px;
+        }
+
+        .rank-1 {
+            color: var(--accent-gold);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .rank-2 {
+            color: var(--accent-silver);
+        }
+
+        .rank-3 {
+            color: var(--accent-bronze);
+        }
+
+        .trader-cell {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .trader-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            object-fit: cover;
+        }
+
+        .trader-name-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .trader-username {
+            font-weight: 700;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .trader-wallet {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .league-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .pnl-cell {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            color: var(--accent-green);
+            text-align: right;
+        }
+
+        .pnl-cell.negative {
+            color: #ff4444;
+        }
+
+        .stats-cell {
+            text-align: right;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Versus Sidebar */
+        .versus-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .versus-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0a0a12 100%);
+            border-radius: 16px;
+            border: 1px solid var(--accent-cyan);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .versus-card::before {
+            content: 'VS';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 5rem;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.03);
+            z-index: 0;
+        }
+
+        .versus-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: var(--accent-cyan);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .versus-players {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vs-player {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .vs-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-cyan);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .vs-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .vs-divider {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: var(--accent-purple);
+            text-shadow: var(--glow-purple);
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+
+        .scanner-line {
+            width: 300px;
+            height: 2px;
+            background: var(--accent-cyan);
+            box-shadow: var(--glow-cyan);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scanner-line::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, #fff, transparent);
+            animation: scan 2s infinite linear;
+        }
+
+        @keyframes scan {
+            to {
+                left: 100%;
+            }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--accent-cyan);
+            letter-spacing: 2px;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 1024px) {
+            .pvp-arena {
+                grid-template-columns: 1fr;
+            }
+
+            .versus-sidebar {
+                display: none;
+            }
+        }
+
+        .activity-item {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .activity-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .activity-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1px solid var(--accent-cyan);
+        }
+
+        .activity-info {
+            flex: 1;
+        }
+
+        .activity-user {
+            font-weight: 700;
+            color: #fff;
+            font-size: 0.7rem;
+        }
+
+        .activity-action {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+
+        .activity-side {
+            font-weight: 800;
+            padding: 1px 4px;
+            border-radius: 2px;
+            font-size: 0.6rem;
+        }
+
+        .side-buy {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent-green);
+        }
+
+        .side-sell {
+            background: rgba(255, 68, 68, 0.1);
+            color: #ff4444;
+        }
+
+        .activity-outcome {
+            font-weight: 800;
+            padding: 1px 4px;
+            border-radius: 2px;
+            font-size: 0.6rem;
+            margin-right: 4px;
+        }
+
+        .outcome-yes {
+            background: rgba(0, 243, 255, 0.1);
+            color: var(--accent-cyan);
+        }
+
+        .outcome-no {
+            background: rgba(255, 0, 255, 0.1);
+            color: var(--accent-purple);
+        }
+
+        .best-trade-card {
+            padding: 12px;
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .best-trade-card::before {
+            content: 'TOP';
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            font-size: 2rem;
+            font-weight: 900;
+            color: rgba(255, 215, 0, 0.05);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .best-trade-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .best-trade-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .best-trade-user {
+            font-size: 0.7rem;
+            color: var(--accent-gold);
+            font-weight: 700;
+            max-width: 60%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .best-trade-value {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            color: var(--accent-green);
+            font-size: 0.8rem;
+            max-width: 35%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: right;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            padding: 40px;
+            position: relative;
+            box-shadow: var(--glow-cyan);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--accent-cyan);
+        }
+
+        .recap-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .recap-header h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .recap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .recap-stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .recap-stat-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .recap-stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .recap-narrative {
+            background: rgba(0, 243, 255, 0.05);
+            border-left: 4px solid var(--accent-cyan);
+            padding: 20px;
+            border-radius: 0 12px 12px 0;
+            font-style: italic;
+            line-height: 1.6;
+            color: var(--text-primary);
+            margin-bottom: 30px;
+        }
+
+        .recap-highlight {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .recap-highlight-icon {
+            font-size: 2rem;
+        }
+
+        .recap-highlight-info h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+        }
+
+        .recap-highlight-info p {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .recap-btn {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            padding: 10px 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--glow-cyan);
+            z-index: 1100;
+        }
+
+        .recap-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+        }
+
+        /* League Guide Card */
+        .league-guide-card {
+            background: linear-gradient(135deg, rgba(18, 18, 31, 0.9) 0%, rgba(10, 10, 18, 0.95) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            align-items: center;
+        }
+
+        .league-guide-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--accent-cyan), var(--accent-purple));
+        }
+
+        .guide-section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: var(--accent-cyan);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .league-tiers-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .tier-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .tier-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-2px);
+        }
+
+        .tier-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .tier-name {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.75rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .tier-rank {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .points-info-box {
+            background: rgba(0, 243, 255, 0.03);
+            border: 1px solid rgba(0, 243, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .points-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .points-desc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 900px) {
+            .league-guide-card {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Pick Your Champions Styles */
+        .champions-panel {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(26, 26, 46, 1) 100%);
+            border: 1px solid var(--accent-gold);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+        }
+
+        .champions-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .champions-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .champions-icon {
+            font-size: 1.5rem;
+        }
+
+        .champions-timer {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+
+        .champions-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .champions-slots {
+            display: flex;
+            gap: 15px;
+        }
+
+        .champion-slot {
+            width: 100px;
+            height: 100px;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .champion-slot:hover {
+            border-color: var(--accent-gold);
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        .champion-slot.filled {
+            border-style: solid;
+            border-color: var(--accent-cyan);
+            background: rgba(0, 243, 255, 0.05);
+        }
+
+        .champion-slot.locked {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .slot-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .slot-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .champion-slot.filled .slot-number {
+            display: none;
+        }
+
+        .champion-slot.filled .slot-label {
+            display: none;
+        }
+
+        .champion-avatar-small {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-cyan);
+        }
+
+        .champion-name-small {
+            font-size: 0.7rem;
+            color: var(--text-primary);
+            margin-top: 5px;
+            max-width: 90px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .champions-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lock-btn {
+            background: linear-gradient(135deg, var(--accent-gold), #ffa500);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .lock-btn:disabled {
+            background: var(--border-color);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .lock-btn:not(:disabled):hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .lock-btn.locked {
+            background: var(--accent-green);
+            color: #000;
+        }
+
+        .score-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .score-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .score-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+        }
+
+        .champions-rules {
+            margin-top: 15px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+
+        .rules-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .rules-header:hover {
+            color: var(--accent-gold);
+        }
+
+        .rules-content {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 8px;
+        }
+
+        .rule-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.02);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        .rule-icon {
+            font-size: 1rem;
+        }
+
+        .select-champion-btn {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid var(--accent-gold);
+            color: var(--accent-gold);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: 10px;
+        }
+
+        .select-champion-btn:hover {
+            background: var(--accent-gold);
+            color: #000;
+        }
+
+        .select-champion-btn.selected {
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            color: #000;
+        }
+
+
+        .manager-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .manager-rank {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            width: 20px;
+            color: var(--text-secondary);
+        }
+
+        .manager-name {
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .manager-score {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        .weekly-champion-badge {
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 0.8rem;
+            filter: drop-shadow(0 0 5px var(--accent-gold));
+        }
+
+        .user-manager-row {
+            background: rgba(0, 243, 255, 0.1);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="arena-bg"></div>
+
+    <div id="loading" class="loading-overlay">
+        <div class="scanner-line"></div>
+        <div class="loading-text">INITIALIZING ARENA...</div>
+    </div>
+
+    <a href="/" class="back-link" onclick="window.location.href='/'; return true;">← SCANNER</a>
+
+    <header class="header">
+        <h1>WATCHER LEAGUE</h1>
+        <p>PolyWatcher Sports Ranking • Live Rankings</p>
+        <button class="recap-btn" onclick="showDailyRecap()">DAILY RECAP</button>
+    </header>
+
+    <!-- Daily Recap Modal -->
+    <div id="recap-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <div class="recap-header">
+                <h2>Daily Arena Recap</h2>
+                <p id="recap-date" style="font-size: 0.9rem; color: var(--text-secondary);"></p>
+            </div>
+
+            <div class="recap-narrative" id="recap-narrative">
+                Analyzing the arena's performance...
+            </div>
+
+            <div class="recap-grid">
+                <div class="recap-stat-card">
+                    <div class="recap-stat-label">Total Arena Volume</div>
+                    <div class="recap-stat-value" id="recap-total-volume">$0</div>
+                </div>
+                <div class="recap-stat-card">
+                    <div class="recap-stat-label">Cumulative Profit</div>
+                    <div class="recap-stat-value" id="recap-total-pnl" style="color: var(--accent-green);">$0</div>
+                </div>
+                <div class="recap-stat-card">
+                    <div class="recap-stat-label">Hottest Sport</div>
+                    <div class="recap-stat-value" id="recap-hottest-sport">-</div>
+                </div>
+            </div>
+
+            <div class="recap-highlight">
+                <div class="recap-highlight-icon">🏆</div>
+                <div class="recap-highlight-info">
+                    <h4>Trader of the Day</h4>
+                    <p id="recap-trader-name">Locating top performer...</p>
+                </div>
+            </div>
+
+            <div class="recap-highlight"
+                style="background: rgba(0, 243, 255, 0.05); border-color: rgba(0, 243, 255, 0.2);">
+                <div class="recap-highlight-icon">🐋</div>
+                <div class="recap-highlight-info">
+                    <h4 style="color: var(--accent-cyan);">Biggest Whale Move</h4>
+                    <p id="recap-whale-move">Scanning for massive entries...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="sport-selector" class="sport-selector">
+            <!-- Tabs will be injected here -->
+        </div>
+
+        <!-- League Guide Card -->
+        <div class="league-guide-card">
+            <div class="guide-main">
+                <div class="guide-section-title">
+                    <span>🏆</span> ARENA LEAGUE TIERS
+                </div>
+                <div class="league-tiers-display">
+                    <div class="tier-item" style="border-color: rgba(255, 0, 255, 0.3);">
+                        <span class="tier-icon">🏆</span>
+                        <span class="tier-name" style="color: #ff00ff;">GRANDMASTER</span>
+                        <span class="tier-rank">TOP 5 GLOBAL</span>
+                    </div>
+                    <div class="tier-item" style="border-color: rgba(0, 243, 255, 0.3);">
+                        <span class="tier-icon">💎</span>
+                        <span class="tier-name" style="color: #00f3ff;">MASTER</span>
+                        <span class="tier-rank">RANK 6 - 15</span>
+                    </div>
+                    <div class="tier-item" style="border-color: rgba(255, 255, 255, 0.2);">
+                        <span class="tier-icon">🥇</span>
+                        <span class="tier-name" style="color: #fff;">DIAMOND</span>
+                        <span class="tier-rank">RANK 16 - 30</span>
+                    </div>
+                    <div class="tier-item" style="border-color: rgba(229, 228, 226, 0.2);">
+                        <span class="tier-icon">🥈</span>
+                        <span class="tier-name" style="color: #e5e4e2;">PLATINUM</span>
+                        <span class="tier-rank">RANK 31 - 50</span>
+                    </div>
+                    <div class="tier-item" style="border-color: rgba(255, 215, 0, 0.2);">
+                        <span class="tier-icon">🥉</span>
+                        <span class="tier-name" style="color: #ffd700;">GOLD</span>
+                        <span class="tier-rank">RANK 51 - 75</span>
+                    </div>
+                    <div class="tier-item" style="border-color: rgba(205, 127, 50, 0.2);">
+                        <span class="tier-icon">🎖️</span>
+                        <span class="tier-name" style="color: #cd7f32;">SILVER</span>
+                        <span class="tier-rank">RANK 76+</span>
+                    </div>
+                </div>
+            </div>
+            <div class="points-info-box">
+                <div class="points-title">WATCHER POINTS</div>
+                <p class="points-desc" style="margin-bottom: 0;">
+                    <strong>Watcher Points</strong> represent a trader's overall dominance.
+                    Points are earned by ranking in the Top 100 across multiple sports. High PNL and ROI also provide a
+                    score boost, though multi-sport performance remains the primary factor for reaching the highest
+                    leagues.
+                </p>
+            </div>
+        </div>
+
+
+        <!-- Pick Your Champions Panel -->
+        <div class="champions-panel" id="champions-panel">
+            <div class="champions-header">
+                <div class="champions-title">
+                    <span class="champions-icon">🏅</span>
+                    PICK YOUR CHAMPIONS
+                </div>
+                <div class="champions-timer" id="champions-timer">
+                    Resets Sunday Midnight UTC
+                </div>
+            </div>
+            <div class="champions-content">
+                <div class="champions-slots" id="champions-slots">
+                    <div class="champion-slot empty" data-slot="0">
+                        <span class="slot-number">1</span>
+                        <span class="slot-label">Select</span>
+                    </div>
+                    <div class="champion-slot empty" data-slot="1">
+                        <span class="slot-number">2</span>
+                        <span class="slot-label">Select</span>
+                    </div>
+                    <div class="champion-slot empty" data-slot="2">
+                        <span class="slot-number">3</span>
+                        <span class="slot-label">Select</span>
+                    </div>
+                </div>
+                <div class="champions-actions">
+                    <button class="lock-btn" id="lock-picks-btn" disabled>🔒 Lock In Picks</button>
+                    <div class="score-display">
+                        <span class="score-label">Your Score:</span>
+                        <span class="score-value" id="champions-score">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="champions-rules" id="champions-rules">
+                <div class="rules-header" onclick="toggleRules()">
+                    <span>📖 How Scoring Works</span>
+                    <span class="rules-toggle" id="rules-toggle">▼</span>
+                </div>
+                <div class="rules-content" id="rules-content" style="display: none;">
+                    <div class="rule-item"><span class="rule-icon" style="color: var(--accent-green);">↑</span> +5
+                        points for each rank your champion gains</div>
+                    <div class="rule-item"><span class="rule-icon" style="color: #ff4444;">↓</span> -2 points for each
+                        rank your champion loses</div>
+                    <div class="rule-item"><span class="rule-icon" style="color: var(--accent-green);">💰</span> +10
+                        points for a positive PnL day</div>
+                    <div class="rule-item"><span class="rule-icon" style="color: #ff4444;">📉</span> -5 points for a
+                        negative PnL day</div>
+                    <div class="rule-item"><span class="rule-icon" style="color: var(--accent-gold);">⭐</span> +20 bonus
+                        if your champion stays in Top 3</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pvp-arena">
+            <div class="leaderboard-container">
+                <table class="leaderboard-table">
+                    <thead id="leaderboard-head">
+                        <tr>
+                            <th>Rank</th>
+                            <th>Trader</th>
+                            <th>League</th>
+                            <th style="text-align: right;">PnL</th>
+                            <th style="text-align: right;">ROI</th>
+                            <th style="text-align: right;">Volume / Trades</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <!-- Traders will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="versus-sidebar">
+                <div class="versus-card" id="top-rivalry">
+                    <div class="versus-title">Top Rivalry</div>
+                    <div class="versus-players" id="rivalry-players">
+                        <!-- Rivalry players injected here -->
+                    </div>
+                </div>
+
+                <div class="versus-card" style="border-color: var(--accent-purple);">
+                    <div class="versus-title" style="color: var(--accent-purple);">Arena Stats</div>
+                    <div id="arena-stats" style="text-align: left; font-size: 0.85rem; color: var(--text-secondary);">
+                        <!-- Stats injected here -->
+                    </div>
+                </div>
+
+                <div class="versus-card"
+                    style="border-color: var(--accent-cyan); max-height: 400px; display: flex; flex-direction: column;">
+                    <div class="versus-title" style="color: var(--accent-cyan);">Live Activity</div>
+                    <div id="live-activity"
+                        style="flex: 1; overflow-y: auto; text-align: left; scrollbar-width: thin; scrollbar-color: var(--accent-cyan) transparent;">
+                        <!-- Activity items injected here -->
+                    </div>
+                </div>
+
+                <div class="versus-card"
+                    style="border-color: var(--accent-gold); background: linear-gradient(180deg, rgba(255, 215, 0, 0.05) 0%, transparent 100%);">
+                    <div class="versus-title" style="color: var(--accent-gold);">Biggest Whale Moves</div>
+                    <div id="best-trades" style="text-align: left;">
+                        <!-- Best trades injected here -->
+                    </div>
+                </div>
+                <div class="versus-card" id="manager-leaderboard-card"
+                    style="border-color: var(--accent-gold); margin-top: 20px;">
+                    <div class="versus-title" style="color: var(--accent-gold);">Manager Leaderboard</div>
+                    <div id="manager-leaderboard-list" style="text-align: left; font-size: 0.85rem;">
+                        <!-- Manager rankings injected here -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSport = 'NBA';
+        let allData = null;
+        let recentTrades = [];
+        let bestTrades = [];
+
+        const sportIcons = {
+            'NBA': '🏀', 'NFL': '🏈', 'UFC': '🥊', 'Soccer': '⚽',
+            'MLB': '⚾', 'NHL': '🏒', 'College Football': '🏈',
+            'College Basketball': '🏀', 'Boxing': '🥊', 'Tennis': '🎾',
+            'Golf': '⛳', 'F1': '🏎️', 'NASCAR': '🏁'
+        };
+
+        function formatMoney(amount) {
+            const sign = amount < 0 ? '-' : '';
+            const absAmount = Math.abs(amount);
+            if (absAmount >= 1000000) return sign + '$' + (absAmount / 1000000).toFixed(2) + 'M';
+            if (absAmount >= 1000) return sign + '$' + (absAmount / 1000).toFixed(1) + 'K';
+            return sign + '$' + absAmount.toFixed(0);
+        }
+
+                        async function loadData(retryCount = 0) {
+            try {
+                const response = await fetch('/api/scanner/sports_leaderboard?per_sport=100');
+                const data = await response.json();
+                
+                if (!data || !data.sports || Object.keys(data.sports).length === 0) {
+                    if (retryCount < 10) {
+                        document.querySelector('.loading-text').textContent = "PREPARING ARENA (Attempt " + (retryCount + 1) + "/10)...";
+                        setTimeout(() => loadData(retryCount + 1), 5000);
+                        return;
+                    }
+                    throw new Error('No data returned from arena');
+                }
+
+                allData = data.sports;
+
+                renderTabs();
+                switchSport(Object.keys(allData)[0] || 'NBA');
+
+                document.getElementById('loading').style.opacity = '0';
+                setTimeout(() => document.getElementById('loading').style.display = 'none', 500);
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.querySelector('.loading-text').textContent = 'ERROR LOADING ARENA';
+                document.querySelector('.loading-text').style.color = '#ff4444';
+                
+                const loadingDiv = document.getElementById('loading');
+                if (!document.getElementById('retry-btn')) {
+                    const btn = document.createElement('button');
+                    btn.id = 'retry-btn';
+                    btn.textContent = 'RETRY CONNECTION';
+                    btn.style.marginTop = '20px';
+                    btn.style.padding = '10px 20px';
+                    btn.style.background = 'var(--accent-cyan)';
+                    btn.style.border = 'none';
+                    btn.style.borderRadius = '4px';
+                    btn.style.cursor = 'pointer';
+                    btn.style.fontFamily = 'Orbitron';
+                    btn.onclick = () => {
+                        document.querySelector('.loading-text').textContent = 'INITIALIZING ARENA...';
+                        document.querySelector('.loading-text').style.color = 'var(--accent-cyan)';
+                        btn.remove();
+                        loadData(0);
+                    };
+                    loadingDiv.appendChild(btn);
+                }
+            }
+        }
+
+        function handleImageError(img, username) {
+            if (img.dataset.errorHandled) return;
+            img.dataset.errorHandled = "true";
+            img.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random&color=fff`;
+        }
+
+        function renderTabs() {
+            const selector = document.getElementById('sport-selector');
+            let sports = Object.keys(allData).sort();
+
+            if (sports.includes('Overall')) {
+                sports = ['Overall', ...sports.filter(s => s !== 'Overall')];
+            }
+
+            selector.innerHTML = sports.map(sport => `
+                <div class="sport-tab ${sport === currentSport ? 'active' : ''}" onclick="switchSport('${sport}')">
+                    ${sportIcons[sport] || (sport === 'Overall' ? '🌎' : '🏆')} ${sport}
+                </div>
+            `).join('');
+        }
+
+        function switchSport(sport) {
+            currentSport = sport;
+            const sportData = allData[sport] || { traders: [], recent_trades: [], best_trades: [] };
+            recentTrades = sportData.recent_trades || [];
+            bestTrades = sportData.best_trades || [];
+
+            renderTabs();
+            renderLeaderboard();
+            renderSidebar();
+            renderActivity();
+            renderBestTrades();
+            renderChampionsPanel();
+            renderManagerLeaderboard();
+            if (isLocked) calculateScore();
+        }
+
+        function renderLeaderboard() {
+            const head = document.getElementById('leaderboard-head');
+            const body = document.getElementById('leaderboard-body');
+            const traders = (allData[currentSport] ? allData[currentSport].traders : []) || [];
+
+            if (currentSport === 'Overall') {
+                head.innerHTML = `
+                    <tr>
+                        <th>Rank</th>
+                        <th>Trader</th>
+                        <th>League</th>
+                        <th style="text-align: center;">
+                            Watcher Score 
+                            <span style="font-size: 0.8em; cursor: help; border-bottom: 1px dotted #777;" title="Points earned for ranking in the Top 100 across different sports. Higher ranks and more sports lead to a higher score.">ⓘ</span>
+                        </th>
+                        <th style="text-align: right;">PnL</th>
+                        <th style="text-align: right;">ROI</th>
+                        <th style="text-align: right;">Volume / Trades</th>
+                        <th style="text-align: center;">Pick</th>
+                    </tr>
+                 `;
+            } else {
+                head.innerHTML = `
+                    <tr>
+                        <th>Rank</th>
+                        <th>Trader</th>
+                        <th>League</th>
+                        <th style="text-align: right;">PnL</th>
+                        <th style="text-align: right;">ROI</th>
+                        <th style="text-align: right;">Volume / Trades</th>
+                        <th style="text-align: center;">Pick</th>
+                    </tr>
+                 `;
+            }
+
+            body.innerHTML = traders.map((t, i) => {
+                const roiColor = t.roi >= 0 ? 'var(--accent-green)' : '#ff4444';
+                const roiSign = t.roi >= 0 ? '+' : '';
+
+                let rankStyle = '';
+                if (t.league.name === 'Grandmaster') rankStyle = 'color: #ff00ff; text-shadow: 0 0 10px #ff00ff;';
+                else if (t.league.name === 'Master') rankStyle = 'color: #00f3ff; text-shadow: 0 0 10px #00f3ff;';
+                else if (t.league.name === 'Diamond') rankStyle = 'color: #fff; text-shadow: 0 0 5px #fff;';
+                else if (t.league.name === 'Platinum') rankStyle = 'color: #e5e4e2;';
+                else if (t.league.name === 'Gold') rankStyle = 'color: #ffd700;';
+                else if (t.league.name === 'Silver') rankStyle = 'color: #cd7f32;';
+
+                return `
+                <tr class="trader-row ${i < 3 ? 'top-3' : ''}" style="border-left: 3px solid ${t.league.color};">
+                    <td class="rank-cell" style="${rankStyle}">${t.rank}</td>
+                    <td>
+                        <div class="trader-cell">
+                            <img src="${t.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(t.username)}&background=random&color=fff`}" class="trader-avatar" onerror="handleImageError(this, this.dataset.username)" data-username="${t.username}" >
+                            <div class="trader-name-container">
+                                <span class="trader-username">${t.username}</span>
+                                <span class="trader-wallet">${t.wallet}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="league-badge" style="color: ${t.league.color}; border: 1px solid ${t.league.color}; box-shadow: ${t.league.glow}">
+                            ${t.league.icon} ${t.league.name}
+                        </span>
+                    </td>
+                    ${currentSport === 'Overall' ? `<td style="text-align: center; font-family: 'Orbitron', sans-serif; font-weight: 700; color: var(--accent-cyan); text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);">${t.points}</td>` : ''}
+                    <td class="pnl-cell ${t.pnl < 0 ? 'negative' : ''}">${formatMoney(t.pnl)}</td>
+                    <td style="text-align: right; font-weight: 700; color: ${roiColor};">${roiSign}${t.roi}%</td>
+                    <td class="stats-cell">
+                        <div style="color: var(--text-primary); font-weight: 600;">${formatMoney(t.volume)}</div>
+                        <div style="font-size: 0.7rem;">${t.trades} TRADES</div>
+                    </td>
+                    <td style="text-align: center;">
+                        <button class="select-champion-btn ${isChampionSelected(t.wallet) ? 'selected' : ''}" 
+                                onclick="event.stopPropagation(); const tObj = allData[currentSport].traders.find(tr => tr.wallet === '${t.wallet}'); if(tObj) toggleChampionSelection(tObj);"
+                                ${isLocked ? 'disabled' : ''}>
+                            ${isChampionSelected(t.wallet) ? '✓ Picked' : '+ Pick'}
+                        </button>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function renderActivity() {
+            const container = document.getElementById('live-activity');
+            if (!container) return;
+
+            container.innerHTML = recentTrades.map(t => {
+                const sideClass = t.side === 'BUY' ? 'side-buy' : 'side-sell';
+                const timeStr = new Date(t.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                return `
+                    <div class="activity-item">
+                        <img src="${t.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(t.username)}&background=random&color=fff`}" class="activity-avatar" onerror="handleImageError(this, this.dataset.username)" data-username="${t.username}">
+                        <div class="activity-info">
+                            <div class="activity-user">${t.username}</div>
+                            <div class="activity-action">
+                                <span class="activity-side ${sideClass}">${t.side}</span>
+                                ${t.outcome ? `<span class="activity-outcome ${t.outcome.toLowerCase() === 'yes' ? 'outcome-yes' : 'outcome-no'}">${t.outcome.toUpperCase()}</span>` : ''}
+                                ${formatMoney(parseFloat(t.usdcSize))} in ${t.title}
+                            </div>
+                        </div>
+                        <div style="font-size: 0.6rem; color: var(--text-secondary);">${timeStr}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderBestTrades() {
+            const container = document.getElementById('best-trades');
+            if (!container) return;
+
+            if (bestTrades.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-secondary); font-size: 0.8rem;">No whale moves detected today.</div>';
+                return;
+            }
+
+            container.innerHTML = bestTrades.slice(0, 3).map(t => {
+                const size = parseFloat(t.usdcSize);
+                const progress = Math.min((size / 10000) * 100, 100);
+
+                let displayName = t.username;
+                if (displayName.startsWith('0x') && displayName.length > 12) {
+                    displayName = displayName.substring(0, 6) + '...' + displayName.substring(displayName.length - 4);
+                }
+
+                return `
+                    <div class="best-trade-card">
+                        <div class="best-trade-title">${t.title}</div>
+                        <div class="best-trade-meta">
+                            <div class="best-trade-user">${displayName}</div>
+                            <div class="best-trade-value">${formatMoney(size)}</div>
+                        </div>
+                        <div style="height: 3px; background: rgba(255, 215, 0, 0.1); border-radius: 2px; margin-top: 8px; overflow: hidden;">
+                            <div style="width: ${progress}%; height: 100%; background: linear-gradient(90deg, var(--accent-gold), var(--accent-green)); box-shadow: 0 0 10px var(--accent-gold);"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function showDailyRecap() {
+            const modal = document.getElementById('recap-modal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.style.opacity = '1', 10);
+
+            try {
+                const response = await fetch('/api/scanner/sports_recap');
+                const data = await response.json();
+
+                document.getElementById('recap-date').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                document.getElementById('recap-narrative').textContent = data.narrative;
+                document.getElementById('recap-total-volume').textContent = formatMoney(data.total_volume);
+                document.getElementById('recap-total-pnl').textContent = formatMoney(data.total_pnl);
+                document.getElementById('recap-total-pnl').className = `recap-stat-value ${data.total_pnl < 0 ? 'negative' : ''}`;
+                document.getElementById('recap-hottest-sport').textContent = data.hottest_sport;
+
+                if (data.trader_of_day) {
+                    document.getElementById('recap-trader-name').textContent = `${data.trader_of_day.username} (${formatMoney(data.trader_of_day.pnl)} PnL)`;
+                }
+
+                if (data.biggest_move) {
+                    document.getElementById('recap-whale-move').textContent = `${formatMoney(parseFloat(data.biggest_move.usdcSize))} in ${data.biggest_move.title}`;
+                }
+            } catch (error) {
+                console.error('Error fetching recap:', error);
+                document.getElementById('recap-narrative').textContent = "Failed to fetch the daily report. The arena is currently too volatile.";
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('recap-modal');
+            modal.style.opacity = '0';
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        function renderSidebar() {
+            const traders = (allData[currentSport] ? allData[currentSport].traders : []) || [];
+            if (traders.length < 2) return;
+
+            const p1 = traders[0];
+            const p2 = traders[1];
+
+            document.getElementById('rivalry-players').innerHTML = `
+                <div class="vs-player">
+                    <img src="${p1.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(p1.username)}&background=random&color=fff`}" class="vs-avatar" onerror="handleImageError(this, this.dataset.username)" data-username="${p1.username}" >
+                    <div class="vs-name">${p1.username}</div>
+                </div>
+                <div class="vs-divider">VS</div>
+                <div class="vs-player">
+                    <img src="${p2.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(p2.username)}&background=random&color=fff`}" class="vs-avatar" onerror="handleImageError(this, this.dataset.username)" data-username="${p2.username}" >
+                    <div class="vs-name">${p2.username}</div>
+                </div>
+            `;
+
+            const totalVolume = traders.reduce((sum, t) => sum + (parseFloat(t.volume) || 0), 0);
+            const totalPnL = traders.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+            const avgTrades = (traders.reduce((sum, t) => sum + (parseInt(t.trades) || 0), 0) / traders.length).toFixed(0);
+
+            document.getElementById('arena-stats').innerHTML = `
+                <div style="margin-bottom: 10px;">
+                    <div style="font-size: 0.7rem; color: var(--accent-cyan);">TOTAL ARENA VOLUME</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: #fff;">${formatMoney(totalVolume)}</div>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <div style="font-size: 0.7rem; color: var(--accent-green);">CUMULATIVE PROFIT</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--accent-green);">${formatMoney(totalPnL)}</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.7rem; color: var(--accent-purple);">AVG BATTLE COUNT</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: #fff;">${avgTrades} TRADES</div>
+                </div>
+            `;
+        }
+
+
+        // =========================================================================
+        // PICK YOUR CHAMPIONS - Fantasy Game Logic
+        // =========================================================================
+
+        const CHAMPIONS_STORAGE_KEY = 'pycChampions';
+        const CHAMPIONS_LOCK_KEY = 'pycLocked';
+        const CHAMPIONS_SCORE_KEY = 'pycScore';
+        const CHAMPIONS_BASELINE_KEY = 'pycBaseline';
+        const MAX_CHAMPIONS = 3;
+
+        let selectedChampions = [];
+        let isLocked = false;
+        let championsBaseline = {};
+
+        function loadChampionsFromStorage() {
+            try {
+                const stored = localStorage.getItem(CHAMPIONS_STORAGE_KEY);
+                const lockStored = localStorage.getItem(CHAMPIONS_LOCK_KEY);
+                const baselineStored = localStorage.getItem(CHAMPIONS_BASELINE_KEY);
+
+                if (stored) selectedChampions = JSON.parse(stored);
+                if (lockStored) isLocked = JSON.parse(lockStored);
+                if (baselineStored) championsBaseline = JSON.parse(baselineStored);
+
+                // Check for weekly reset (Sunday midnight UTC)
+                checkWeeklyReset();
+            } catch (e) {
+                console.error('Error loading champions:', e);
+                selectedChampions = [];
+                isLocked = false;
+            }
+        }
+
+        function saveChampionsToStorage() {
+            localStorage.setItem(CHAMPIONS_STORAGE_KEY, JSON.stringify(selectedChampions));
+            localStorage.setItem(CHAMPIONS_LOCK_KEY, JSON.stringify(isLocked));
+            localStorage.setItem(CHAMPIONS_BASELINE_KEY, JSON.stringify(championsBaseline));
+        }
+
+        function checkWeeklyReset() {
+            const now = new Date();
+            const lastReset = localStorage.getItem('pycLastReset');
+            const lastResetDate = lastReset ? new Date(lastReset) : null;
+
+            // Check if we've passed Sunday midnight UTC since last reset
+            const currentSunday = getNextSundayMidnightUTC();
+            const previousSunday = new Date(currentSunday.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+            if (!lastResetDate || lastResetDate < previousSunday) {
+                // Reset everything
+                selectedChampions = [];
+                isLocked = false;
+                championsBaseline = {};
+                localStorage.setItem('pycLastReset', now.toISOString());
+                localStorage.removeItem(CHAMPIONS_SCORE_KEY);
+                saveChampionsToStorage();
+            }
+        }
+
+        function getNextSundayMidnightUTC() {
+            const now = new Date();
+            const dayOfWeek = now.getUTCDay();
+            const daysUntilSunday = dayOfWeek === 0 ? 7 : 7 - dayOfWeek;
+            const nextSunday = new Date(now);
+            nextSunday.setUTCDate(now.getUTCDate() + daysUntilSunday);
+            nextSunday.setUTCHours(0, 0, 0, 0);
+            return nextSunday;
+        }
+
+        function updateTimerDisplay() {
+            const timerEl = document.getElementById('champions-timer');
+            if (!timerEl) return;
+
+            const nextReset = getNextSundayMidnightUTC();
+            const now = new Date();
+            const diff = nextReset - now;
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+            timerEl.textContent = `Resets in ${days}d ${hours}h ${minutes}m`;
+        }
+
+        function toggleRules() {
+            const content = document.getElementById('rules-content');
+            const toggle = document.getElementById('rules-toggle');
+            if (content.style.display === 'none') {
+                content.style.display = 'grid';
+                toggle.textContent = '▲';
+            } else {
+                content.style.display = 'none';
+                toggle.textContent = '▼';
+            }
+        }
+
+        function toggleChampionSelection(trader) {
+            if (isLocked) return;
+
+            const walletId = trader.wallet;
+            const existingIndex = selectedChampions.findIndex(c => c.wallet === walletId);
+
+            if (existingIndex >= 0) {
+                // Deselect
+                selectedChampions.splice(existingIndex, 1);
+            } else if (selectedChampions.length < MAX_CHAMPIONS) {
+                // Select
+                selectedChampions.push({
+                    wallet: trader.wallet,
+                    username: trader.username,
+                    profile_image: trader.profile_image,
+                    initialRank: trader.rank,
+                    initialPnl: trader.pnl
+                });
+            }
+
+            saveChampionsToStorage();
+            renderChampionsPanel();
+            renderManagerLeaderboard();
+            renderLeaderboard();
+        }
+
+        function lockPicks() {
+            if (selectedChampions.length === 0) return;
+
+            isLocked = true;
+
+            // Save baseline ranks and PnL at lock time
+            const traders = (allData[currentSport] ? allData[currentSport].traders : []) || [];
+            selectedChampions.forEach(champ => {
+                const traderData = traders.find(t => t.wallet === champ.wallet);
+                if (traderData) {
+                    championsBaseline[champ.wallet] = {
+                        rank: traderData.rank,
+                        pnl: traderData.pnl
+                    };
+                }
+            });
+
+            saveChampionsToStorage();
+            renderChampionsPanel();
+            renderManagerLeaderboard();
+            calculateScore();
+        }
+
+        function calculateScore() {
+            if (!isLocked || selectedChampions.length === 0) {
+                document.getElementById('champions-score').textContent = '0';
+                return;
+            }
+
+            const traders = (allData[currentSport] ? allData[currentSport].traders : []) || [];
+            let totalScore = 0;
+
+            selectedChampions.forEach(champ => {
+                const baseline = championsBaseline[champ.wallet];
+                if (!baseline) return;
+
+                const currentTrader = traders.find(t => t.wallet === champ.wallet);
+                if (!currentTrader) return;
+
+                // Rank changes: +5 per rank gained, -2 per rank lost
+                const rankChange = baseline.rank - currentTrader.rank; // Positive means they went up
+                if (rankChange > 0) {
+                    totalScore += rankChange * 5;
+                } else {
+                    totalScore += rankChange * 2; // rankChange is negative, so this subtracts
+                }
+
+                // PnL positive/negative: +10/-5
+                const pnlChange = currentTrader.pnl - baseline.pnl;
+                if (pnlChange > 0) {
+                    totalScore += 10;
+                } else if (pnlChange < 0) {
+                    totalScore -= 5;
+                }
+
+                // Top 3 bonus: +20
+                if (currentTrader.rank <= 3) {
+                    totalScore += 20;
+                }
+            });
+
+            document.getElementById('champions-score').textContent = totalScore;
+            localStorage.setItem(CHAMPIONS_SCORE_KEY, totalScore);
+        }
+
+        function renderChampionsPanel() {
+            const slotsContainer = document.getElementById('champions-slots');
+            const lockBtn = document.getElementById('lock-picks-btn');
+
+            if (!slotsContainer || !lockBtn) return;
+
+            // Render slots
+            slotsContainer.innerHTML = [0, 1, 2].map(i => {
+                const champ = selectedChampions[i];
+                if (champ) {
+                    const imgSrc = champ.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(champ.username)}&background=random&color=fff`;
+                    return `
+                        <div class="champion-slot filled ${isLocked ? 'locked' : ''}" data-slot="${i}" onclick="${isLocked ? '' : `removeChampion('${champ.wallet}')`}">
+                            <img src="${imgSrc}" class="champion-avatar-small" onerror="handleImageError(this, '${champ.username}')">
+                            <div class="champion-name-small">${champ.username}</div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="champion-slot empty ${isLocked ? 'locked' : ''}" data-slot="${i}">
+                            <span class="slot-number">${i + 1}</span>
+                            <span class="slot-label">Select</span>
+                        </div>
+                    `;
+                }
+            }).join('');
+
+            // Update lock button
+            if (isLocked) {
+                lockBtn.textContent = '✓ PICKS LOCKED';
+                lockBtn.classList.add('locked');
+                lockBtn.disabled = true;
+            } else {
+                lockBtn.disabled = selectedChampions.length === 0;
+                lockBtn.textContent = '🔒 Lock In Picks';
+                lockBtn.classList.remove('locked');
+            }
+
+            // Update timer
+            updateTimerDisplay();
+        }
+
+        function removeChampion(wallet) {
+            if (isLocked) return;
+            selectedChampions = selectedChampions.filter(c => c.wallet !== wallet);
+            saveChampionsToStorage();
+            renderChampionsPanel();
+            renderManagerLeaderboard();
+            renderLeaderboard();
+        }
+
+        function isChampionSelected(wallet) {
+            return selectedChampions.some(c => c.wallet === wallet);
+        }
+
+        // Initialize on page load
+
+        // =========================================================================
+        // MANAGER LEADERBOARD & AI RIVALS
+        // =========================================================================
+
+        const AI_RIVALS = [
+            { name: "NEXUS-7", baseSkill: 0.8 },
+            { name: "VANGUARD", baseSkill: 0.7 },
+            { name: "ORACLE", baseSkill: 0.9 },
+            { name: "CYPHER", baseSkill: 0.6 }
+        ];
+
+        function getRivalScores() {
+            // Seeded random based on the current week to keep scores stable during the week
+            const weekSeed = Math.floor(new Date().getTime() / (7 * 24 * 60 * 60 * 1000));
+
+            return AI_RIVALS.map(rival => {
+                const randomFactor = Math.sin(weekSeed + rival.name.length) * 50;
+                const score = Math.floor(rival.baseSkill * 150 + randomFactor);
+                return { name: rival.name, score: Math.max(0, score), isAI: true };
+            });
+        }
+
+        function renderManagerLeaderboard() {
+            const container = document.getElementById('manager-leaderboard-list');
+            if (!container) return;
+
+            const userScore = parseInt(localStorage.getItem(CHAMPIONS_SCORE_KEY) || '0');
+            const rivals = getRivalScores();
+
+            const allManagers = [
+                { name: "YOU", score: userScore, isUser: true },
+                ...rivals
+            ].sort((a, b) => b.score - a.score);
+
+            container.innerHTML = allManagers.map((m, i) => {
+                const isTop = i === 0;
+                const badge = isTop ? '<span class="weekly-champion-badge" title="Weekly Champion">🏆</span>' : '';
+                const rowClass = m.isUser ? 'user-manager-row' : '';
+
+                return `
+                    <div class="manager-item ${rowClass}">
+                        <div class="manager-rank">${i + 1}</div>
+                        <div class="manager-name">${m.name}${badge}</div>
+                        <div class="manager-score">${m.score}</div>
+                    </div>
+                `;
+            }).join('');
+
+            // If user is #1, show a special notification/badge in the champions panel
+            const userRank = allManagers.findIndex(m => m.isUser) + 1;
+            const titleEl = document.querySelector('.champions-title');
+            if (userRank === 1 && userScore > 0) {
+                if (!titleEl.innerHTML.includes('WEEKLY CHAMPION')) {
+                    titleEl.innerHTML += ' <span style="font-size: 0.7rem; color: var(--accent-green); margin-left: 10px;">[WEEKLY CHAMPION]</span>';
+                }
+            }
+        }
+
+        // Update calculateScore to also refresh the leaderboard
+        const originalCalculateScore = calculateScore;
+        calculateScore = function () {
+            originalCalculateScore();
+            renderManagerLeaderboard();
+        };
+
+        loadChampionsFromStorage();
+        setInterval(updateTimerDisplay, 60000); // Update timer every minute
+
+        loadData();
+    </script>
+</body>
+
+</html>

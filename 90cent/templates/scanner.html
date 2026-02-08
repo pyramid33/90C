@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POLY WATCHER - Live Market Intelligence</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/scanner.css') }}">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <!-- SEO Meta -->
+    <meta name="description"
+        content="Live Polymarket market intelligence - find high volume, trending, and insider activity opportunities">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M10 50 C 20 20, 80 20, 90 50 C 80 80, 20 80, 10 50 Z' fill='none' stroke='%2300f3ff' stroke-width='8'/><circle cx='50' cy='50' r='15' fill='%2300f3ff'/></svg>">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="scanner-header">
+        <div class="header-left">
+            <h1>
+                <div class="scanning-eye">
+                    <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 30 C 20 10, 80 10, 90 30 C 80 50, 20 50, 10 30 Z" class="eye-lid" />
+                        <circle cx="50" cy="30" r="8" class="eye-pupil" />
+                        <line x1="15" y1="30" x2="85" y2="30" class="eye-beam" />
+                    </svg>
+                </div>
+                <span class="gradient-text">POLY</span> WATCHER
+            </h1>
+
+            <div class="subtitle">Live Market Intelligence</div>
+        </div>
+        <div class="header-right">
+            <button class="action-btn correlation-btn" id="btn-correlation">
+                <span class="btn-icon">🕸️</span>
+                Correlation Matrix
+            </button>
+            <a href="/sports" class="action-btn sports-btn"
+                style="text-decoration: none; margin-left: 10px; background: rgba(0, 243, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan);">
+                <span class="btn-icon">🏟️</span>
+                Sports Center
+            </a>
+            <a href="/sports_leaderboard" class="action-btn leaderboard-btn"
+                style="text-decoration: none; margin-left: 10px;">
+                <span class="btn-icon">🏆</span>
+                Sports Leaderboard
+            </a>
+            <a href="/portfolio" class="action-btn portfolio-btn" style="text-decoration: none; margin-left: 10px;">
+                <span class="btn-icon">💼</span>
+                Portfolio
+            </a>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="stat-value" id="total-volume">--</span>
+                    <span class="stat-label">24h Volume</span>
+                </div>
+                <div class="stat-item hot">
+                    <span class="stat-value" id="hot-count">--</span>
+                    <span class="stat-label">🔥 Hot</span>
+                </div>
+                <div class="stat-item insider">
+                    <span class="stat-value" id="insider-count">--</span>
+                    <span class="stat-label">🕵️ Insider</span>
+                </div>
+            </div>
+            <div class="live-indicator" id="live-indicator">
+                <span class="pulse"></span>
+                <span>LIVE</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Category Tabs -->
+    <nav class="category-tabs">
+        <button class="tab-btn active" data-category="hot"
+            data-tooltip="Markets with high 24h trading volume and significant interest.">
+            <span class="tab-icon">🔥</span>
+            <span class="tab-text">Hot</span>
+        </button>
+        <button class="tab-btn" data-category="momentum"
+            data-tooltip="Markets showing the strongest price trends and volatility in the last 24h.">
+            <span class="tab-icon">📈</span>
+            <span class="tab-text">Momentum</span>
+        </button>
+        <button class="tab-btn" data-category="insider"
+            data-tooltip="Detecting unusual activity patterns that may indicate smart money entry.">
+            <span class="tab-icon">🕵️</span>
+            <span class="tab-text">Insider</span>
+        </button>
+        <button class="tab-btn" data-category="liquidity"
+            data-tooltip="Deep markets with high total liquidity and tight spreads.">
+            <span class="tab-icon">💰</span>
+            <span class="tab-text">Liquidity</span>
+        </button>
+        <button class="tab-btn" data-category="extreme"
+            data-tooltip="Markets with very high or very low odds (e.g., &lt;10% or &gt;90%).">
+            <span class="tab-icon">🎯</span>
+            <span class="tab-text">Extreme</span>
+        </button>
+        <button class="tab-btn" data-category="arbitrage"
+            data-tooltip="Arbitrage opportunities between related markets.">
+            <span class="tab-icon">⚖️</span>
+            <span class="tab-text">Arbitrage</span>
+        </button>
+        <button class="tab-btn" data-category="cross-platform"
+            data-tooltip="Arbitrage opportunities between Polymarket, Kalshi, predict.fun, and opinion.trade.">
+            <span class="tab-icon">🌐</span>
+            <span class="tab-text">Cross-Platform</span>
+        </button>
+        <button class="tab-btn" data-category="spread"
+            data-tooltip="Neglected markets with wide bid-ask spreads for market making.">
+            <span class="tab-icon">💎</span>
+            <span class="tab-text">Wide Spreads</span>
+        </button>
+        <button class="tab-btn" data-category="calendar" data-tooltip="Markets closing soon, sorted by date.">
+            <span class="tab-icon">📅</span>
+            <span class="tab-text">Calendar</span>
+        </button>
+        <div class="tabs-help-btn" id="tabs-help-btn" title="Learn about scanner categories">ⓘ</div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="scanner-main">
+        <div class="dashboard-layout">
+            <!-- Left Column: Markets -->
+            <div class="markets-column">
+                <!-- Score Legend -->
+                <div class="score-legend">
+                    <div class="legend-header">
+                        <span class="legend-title">Market Score Tiers</span>
+                        <span class="legend-info"
+                            title="Score is based on 24h Volume, Price Momentum, Spread, and Insider Signals.">ⓘ</span>
+                    </div>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <span class="legend-badge score-very-high">🔥 Very High</span>
+                            <span class="legend-desc">80-100</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-badge score-high">🌟 High</span>
+                            <span class="legend-desc">60-79</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-badge score-medium">📊 Medium</span>
+                            <span class="legend-desc">40-59</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-badge score-low">📉 Low</span>
+                            <span class="legend-desc">20-39</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-badge score-minimal">⚪ Minimal</span>
+                            <span class="legend-desc">&lt;20</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state" id="loading-state">
+                    <div class="spinner"></div>
+                    <div>Scanning markets...</div>
+                </div>
+
+                <!-- Markets Grid -->
+                <div class="markets-grid" id="markets-grid">
+                    <!-- Market cards will be inserted here -->
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <div class="empty-icon">🔍</div>
+                    <div class="empty-text">No markets found in this category</div>
+                </div>
+            </div>
+
+            <!-- Right Column: Agent Feed & News -->
+            <div class="agent-column">
+                <!-- New Market Tracker -->
+                <div class="agent-panel fresh-markets-panel">
+                    <div class="agent-header">
+                        <div class="agent-info">
+                            <span class="agent-avatar">⚡</span>
+                            <div class="agent-details">
+                                <div class="agent-name">NEW MARKETS</div>
+                                <div class="agent-status">
+                                    <span class="status-dot"></span>
+                                    TRACKING LIVE
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="agent-feed" id="fresh-markets-feed">
+                        <div class="feed-placeholder">
+                            Waiting for new markets...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Panel -->
+                <div class="agent-panel">
+                    <div class="agent-header"
+                        style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="agent-info">
+                            <span class="agent-avatar">🤖</span>
+                            <div class="agent-details">
+                                <div class="agent-name">WATCHER SPORTS</div>
+                                <div class="agent-status">
+                                    <span class="status-dot"></span>
+                                    ANALYZING LIVE DATA
+                                </div>
+                            </div>
+                            <button id="run-backtest-btn" class="action-btn"
+                                style="font-size: 0.7rem; padding: 4px 10px; height: auto;">Run Backtest</button>
+                        </div>
+                    </div>
+                    <div class="agent-feed" id="agent-feed">
+                        <!-- Predictions will be inserted here -->
+                        <div class="feed-placeholder">
+                            Waiting for signals...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Whale Tracker Panel -->
+                <div class="agent-panel whale-tracker-panel">
+                    <div class="agent-header">
+                        <div class="agent-info">
+                            <span class="agent-avatar">🐋</span>
+                            <div class="agent-details">
+                                <div class="agent-name">WHALE & SMART MONEY</div>
+                                <div class="agent-status">
+                                    <span class="status-dot"></span>
+                                    TRACKING HIGH-IMPACT TRADES
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="agent-feed" id="whale-feed">
+                        <div class="feed-placeholder">
+                            Monitoring whale activity...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- News Panel -->
+                <div class="agent-panel news-panel">
+                    <div class="agent-header">
+                        <div class="agent-info">
+                            <span class="agent-avatar">📰</span>
+                            <div class="agent-details">
+                                <div class="agent-name">Market News</div>
+                                <div class="agent-status">
+                                    <span class="status-dot"></span>
+                                    LIVE FEEDS
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="agent-feed" id="news-feed">
+                        <div class="feed-placeholder">
+                            Loading news...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="scanner-footer">
+        <div class="footer-left">
+            ⚠️ For informational purposes only. Not financial advice.
+        </div>
+        <div class="footer-right">
+            <span id="last-update">Last update: --</span>
+            <span>•</span>
+            <span>Data from Polymarket Gamma API</span>
+        </div>
+    </footer>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">&times;</button>
+            <div class="modal-body" id="modal-body">
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Correlation Matrix Modal -->
+    <div class="modal-overlay" id="correlation-modal">
+        <div class="modal-content large-modal">
+            <button class="modal-close" id="correlation-close">&times;</button>
+            <div class="modal-header">
+                <h2>Market Correlation Matrix</h2>
+                <div class="modal-controls">
+                    <select id="correlation-category">
+                        <option value="hot">🔥 Hot Markets</option>
+                        <option value="momentum">📈 Momentum</option>
+                        <option value="sports">⚽ Sports</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-body correlation-body">
+                <div class="correlation-main">
+                    <div id="correlation-heatmap" style="width: 100%; height: 750px;">
+                        <div class="loading-placeholder">Loading correlation data...</div>
+                    </div>
+                </div>
+                <div class="correlation-sidebar">
+                    <h3>How to Read</h3>
+                    <div class="legend-item">
+                        <div class="color-box red"></div>
+                        <div>
+                            <strong>Positive (+1.0)</strong>
+                            <p>Markets move together (Sync)</p>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="color-box white"></div>
+                        <div>
+                            <strong>None (~0.0)</strong>
+                            <p>Independent markets</p>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="color-box blue"></div>
+                        <div>
+                            <strong>Negative (-1.0)</strong>
+                            <p>Opposite moves (Hedge)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backtest Modal -->
+    <div id="backtest-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 800px;">
+            <button class="modal-close" id="backtest-close">&times;</button>
+            <div class="modal-header">
+                <h2>AI Signals Backtest Results</h2>
+            </div>
+            <div class="modal-body" id="backtest-results" style="color: #ccc; max-height: 600px; overflow-y: auto;">
+                <div class="spinner"></div> Running backtest on top markets...
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/scanner.js') }}"></script>
+</body>
+
+</html>

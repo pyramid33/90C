@@ -1,0 +1,613 @@
+/**
+ * Sports Command Center Styles
+ * Extends scanner.css variables
+ */
+
+:root {
+    --sport-bg: #0b1221;
+    --sport-card: #131c2e;
+    --sport-accent: #ff3e3e;
+    /* Live Red */
+    --sport-win: #00ff88;
+    --sport-text: #ffffff;
+}
+
+body {
+    background-color: var(--sport-bg);
+    background-image:
+        linear-gradient(rgba(11, 18, 33, 0.9), rgba(11, 18, 33, 0.9)),
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231a2639' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Navigation */
+.sports-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background: rgba(11, 18, 33, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-brand {
+    font-family: 'Russo One', sans-serif;
+    font-size: 1.5rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.highlight {
+    color: var(--accent-cyan);
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.nav-link.active,
+.nav-link:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--sport-accent);
+    background: rgba(255, 62, 62, 0.1);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 62, 62, 0.3);
+}
+
+/* Ticker */
+.ticker-wrap {
+    width: 100%;
+    background: #000;
+    overflow: hidden;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ticker {
+    display: flex;
+    animation: ticker 30s linear infinite;
+    white-space: nowrap;
+}
+
+.ticker-item {
+    padding: 0 40px;
+    color: var(--accent-cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+}
+
+@keyframes ticker {
+    0% {
+        transform: translateX(100%);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+/* Layout */
+.sports-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+    margin-top: 30px;
+}
+
+/* Hero Section */
+.hero-match {
+    background: linear-gradient(135deg, #1a2639 0%, #0b1221 100%);
+    border-radius: 16px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.hero-match::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-label {
+    font-size: 0.9rem;
+    color: var(--accent-cyan);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.hero-teams {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.team {
+    text-align: center;
+    flex: 1;
+}
+
+.team-name {
+    font-family: 'Russo One', sans-serif;
+    font-size: 2.5rem;
+    color: white;
+    text-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    margin-bottom: 10px;
+}
+
+.team-odds {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent-green);
+}
+
+.vs {
+    font-family: 'Russo One', sans-serif;
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 0.2);
+    margin: 0 20px;
+}
+
+.hero-stats {
+    display: flex;
+    gap: 30px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    border-radius: 8px;
+    backdrop-filter: blur(5px);
+}
+
+.hero-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.stat-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    color: white;
+}
+
+/* Match Lists */
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.section-header h2 {
+    font-family: 'Russo One', sans-serif;
+    font-size: 1.5rem;
+    color: white;
+    text-transform: uppercase;
+}
+
+.live-badge {
+    background: var(--sport-accent);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 4px;
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 62, 62, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 6px rgba(255, 62, 62, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 62, 62, 0);
+    }
+}
+
+.match-card {
+    background: var(--sport-card);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.match-card:hover {
+    transform: translateX(5px);
+    border-color: var(--accent-cyan);
+    background: rgba(19, 28, 46, 0.8);
+}
+
+.match-info {
+    flex: 1;
+}
+
+.match-title {
+    font-weight: 600;
+    color: white;
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+}
+
+.match-meta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 15px;
+}
+
+.match-odds {
+    display: flex;
+    gap: 15px;
+}
+
+.odds-box {
+    text-align: center;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 15px;
+    border-radius: 6px;
+    min-width: 80px;
+}
+
+.odds-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.odds-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--accent-green);
+}
+
+/* Chart */
+.chart-container {
+    height: 200px;
+    width: 100%;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+/* Intel Panel */
+.intel-panel {
+    background: var(--sport-card);
+    border: 1px solid var(--accent-cyan);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.panel-header {
+    background: rgba(0, 243, 255, 0.1);
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(0, 243, 255, 0.2);
+}
+
+.panel-header h3 {
+    color: var(--accent-cyan);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+.intel-grid {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.ai-insight {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 15px;
+    border-left: 3px solid var(--accent-cyan);
+    transition: transform 0.2s;
+}
+
+.ai-insight:hover {
+    transform: translateX(5px);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Agent Themes */
+.ai-insight.cyan {
+    border-color: var(--accent-cyan);
+}
+
+.ai-insight.cyan .agent-name {
+    color: var(--accent-cyan);
+}
+
+.ai-insight.green {
+    border-color: var(--accent-green);
+}
+
+.ai-insight.green .agent-name {
+    color: var(--accent-green);
+}
+
+.ai-insight.purple {
+    border-color: var(--accent-purple);
+}
+
+.ai-insight.purple .agent-name {
+    color: var(--accent-purple);
+}
+
+.insight-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.agent-name {
+    font-weight: 800;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+.agent-role {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.insight-text {
+    font-size: 0.9rem;
+    color: #e0e0e0;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.insight-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.insight-meta::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.5;
+}
+
+/* News Feed */
+.news-feed {
+    padding: 0;
+}
+
+.news-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.2s;
+}
+
+.news-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.news-headline {
+    font-size: 0.9rem;
+    color: white;
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+.news-time {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.mt-large {
+    margin-top: 40px;
+}
+
+.mt-medium {
+    margin-top: 20px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-teams {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .vs {
+        margin: 10px 0;
+    }
+}
+
+/* Links & Buttons */
+.match-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.hero-cta {
+    display: inline-block;
+    background: var(--sport-accent);
+    color: white;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 12px 24px;
+    border-radius: 4px;
+    text-decoration: none;
+    margin-top: 20px;
+    transition: all 0.3s;
+    border: 1px solid transparent;
+    text-align: center;
+    width: fit-content;
+    align-self: center;
+}
+
+.hero-cta:hover {
+    background: transparent;
+    border-color: var(--sport-accent);
+    color: var(--sport-accent);
+    box-shadow: 0 0 15px rgba(255, 62, 62, 0.3);
+}
+
+/* Tooltip */
+.tooltip-container {
+    position: relative;
+    display: inline-block;
+    margin-left: 8px;
+    cursor: help;
+}
+
+.info-icon {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.tooltip-container:hover .info-icon {
+    color: var(--accent-cyan);
+}
+
+.tooltip-text {
+    visibility: hidden;
+    width: 250px;
+    background-color: rgba(11, 18, 33, 0.95);
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 10px;
+    position: absolute;
+    z-index: 1000;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -125px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    border: 1px solid var(--accent-cyan);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    font-size: 0.8rem;
+    line-height: 1.4;
+    pointer-events: none;
+    text-transform: none;
+    font-weight: normal;
+}
+
+.tooltip-container:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+.tooltip-text strong {
+    color: var(--accent-cyan);
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Navigation Button Colors */
+.scanner-link:hover,
+.scanner-link.active {
+    color: var(--accent-cyan) !important;
+    background: rgba(0, 243, 255, 0.1) !important;
+    border: 1px solid rgba(0, 243, 255, 0.3);
+}
+
+.sports-link:hover,
+.sports-link.active {
+    color: var(--sport-accent) !important;
+    background: rgba(255, 62, 62, 0.1) !important;
+    border: 1px solid rgba(255, 62, 62, 0.3);
+}
+
+.leaderboard-link:hover,
+.leaderboard-link.active {
+    color: #ffd700 !important;
+    background: rgba(255, 215, 0, 0.1) !important;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Risk Calculator - POLY WATCHER</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/scanner.css') }}">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- SEO Meta -->
+    <meta name="description" content="Track your Polymarket portfolio risk and calculate Green Up hedges">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M10 50 C 20 20, 80 20, 90 50 C 80 80, 20 80, 10 50 Z' fill='none' stroke='%2300f3ff' stroke-width='8'/><circle cx='50' cy='50' r='15' fill='%2300f3ff'/></svg>">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="scanner-header">
+        <div class="header-left">
+            <h1>
+                <div class="scanning-eye">
+                    <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 30 C 20 10, 80 10, 90 30 C 80 50, 20 50, 10 30 Z" class="eye-lid" />
+                        <circle cx="50" cy="30" r="8" class="eye-pupil" />
+                        <line x1="15" y1="30" x2="85" y2="30" class="eye-beam" />
+                    </svg>
+                </div>
+                <span class="gradient-text">PORTFOLIO</span> RISK
+            </h1>
+            <div class="subtitle">Position Tracker & Green Up Calculator</div>
+        </div>
+        <div class="header-right">
+            <a href="/" class="action-btn">
+                <span class="btn-icon">📊</span>
+                Back to Scanner
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="scanner-main">
+        <!-- Wallet Input -->
+        <div class="wallet-input-section">
+            <div class="input-card">
+                <label for="wallet-address">Enter Wallet Address</label>
+                <div class="input-group">
+                    <input type="text" id="wallet-address" placeholder="0x... (Polymarket Proxy Address)" />
+                    <button id="load-portfolio" class="action-btn">Load Portfolio</button>
+                </div>
+                <!-- Helpful Links/Info -->
+                <div class="input-hint"
+                    style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+                    <span>
+                        <span style="color: var(--accent-cyan); font-weight: 600;">Tip:</span>
+                        Use your <strong>Proxy Address</strong> (found in Polymarket Settings), not your main wallet.
+                    </span>
+                    <a href="https://polymarket.com/settings" target="_blank"
+                        style="color: var(--text-muted); text-decoration: underline; font-size: 0.8rem;">
+                        Find my address &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-state" id="loading-state" style="display: none;">
+            <div class="spinner"></div>
+            <div>Loading portfolio...</div>
+        </div>
+
+        <!-- Portfolio Dashboard -->
+        <div id="portfolio-dashboard" style="display: none;">
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="summary-label">Total Positions</div>
+                    <div class="summary-value" id="total-positions">--</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Total Cost</div>
+                    <div class="summary-value" id="total-cost">--</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Current Value</div>
+                    <div class="summary-value" id="current-value">--</div>
+                </div>
+                <div class="summary-card pnl">
+                    <div class="summary-label">Total P&L</div>
+                    <div class="summary-value" id="total-pnl">--</div>
+                </div>
+            </div>
+
+            <!-- Exposure by Category -->
+            <div class="exposure-section">
+                <h2>Exposure by Category</h2>
+                <div id="category-exposure" class="exposure-grid"></div>
+            </div>
+
+            <!-- Exposure by Theme -->
+            <div class="exposure-section">
+                <h2>Exposure by Theme</h2>
+                <div id="theme-exposure" class="exposure-grid"></div>
+            </div>
+
+            <!-- Positions Table -->
+            <div class="positions-section">
+                <h2>All Positions</h2>
+                <div id="positions-table"></div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="empty-state" style="display: none;">
+            <div class="empty-icon">💼</div>
+            <div class="empty-text">No positions found for this wallet</div>
+            <div
+                style="margin-top: 15px; font-size: 0.9rem; color: var(--text-muted); max-width: 400px; text-align: center; line-height: 1.5;">
+                If you entered your main Ethereum wallet (e.g. MetaMask), please try entering your
+                <strong style="color: var(--accent-cyan);">Polymarket Proxy Address</strong> instead.
+                <br><br>
+                You can find this in <strong>Settings</strong> on Polymarket.
+            </div>
+        </div>
+    </main>
+
+    <!-- Green Up Modal -->
+    <div class="modal-overlay" id="greenup-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="greenup-close">&times;</button>
+            <div class="modal-header">
+                <h2>Green Up Calculator</h2>
+            </div>
+            <div class="modal-body" id="greenup-body">
+                <!-- Green Up content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/portfolio.js') }}"></script>
+</body>
+
+</html>

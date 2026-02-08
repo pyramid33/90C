@@ -1,0 +1,116 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Polybot P&L Dashboard</title>
+        <meta http-equiv="refresh" content="30"> <!-- Auto-refresh every 30s -->
+        <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #0f111a; color: #e0e0e0; padding: 20px; }
+            .container { max_width: 800px; margin: 0 auto; }
+            .card { background: #1a1d29; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+            h1 { margin-top: 0; color: #fff; }
+            .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+            .stat-item { background: #232736; padding: 15px; border-radius: 8px; }
+            .stat-label { font-size: 0.9em; color: #8b949e; }
+            .stat-value { font-size: 1.5em; font-weight: bold; margin-top: 5px; }
+            .positive { color: #00c853; }
+            .negative { color: #ff3d00; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { text-align: left; padding: 12px; border-bottom: 1px solid #2f3446; }
+            th { color: #8b949e; font-weight: normal; }
+            tr:last-child td { border-bottom: none; }
+            .timestamp { color: #8b949e; font-size: 0.8em; text-align: right; margin-top: 20px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🤖 Polybot P&L Dashboard</h1>
+            
+            <div class="card">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Total Profit</div>
+                        <div class="stat-value negative">
+                            $-1255.76
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Total ROI</div>
+                        <div class="stat-value negative">
+                            -77.02%
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Total Invested</div>
+                        <div class="stat-value">$1630.44</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Total Returned</div>
+                        <div class="stat-value">$374.68</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Daily Performance</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Invested</th>
+                            <th>Returned</th>
+                            <th>Profit</th>
+                            <th>ROI</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    
+                        <tr>
+                            <td>2026-01-11</td>
+                            <td>$56.80</td>
+                            <td>$57.07</td>
+                            <td class="positive">$0.27</td>
+                            <td class="positive">0.48%</td>
+                        </tr>
+        
+                        <tr>
+                            <td>2026-01-10</td>
+                            <td>$1030.74</td>
+                            <td>$317.61</td>
+                            <td class="negative">$-713.13</td>
+                            <td class="negative">-69.19%</td>
+                        </tr>
+        
+                        <tr>
+                            <td>2026-01-08</td>
+                            <td>$19.75</td>
+                            <td>$0.00</td>
+                            <td class="negative">$-19.75</td>
+                            <td class="negative">-100.00%</td>
+                        </tr>
+        
+                        <tr>
+                            <td>2026-01-07</td>
+                            <td>$355.45</td>
+                            <td>$0.00</td>
+                            <td class="negative">$-355.45</td>
+                            <td class="negative">-100.00%</td>
+                        </tr>
+        
+                        <tr>
+                            <td>2026-01-06</td>
+                            <td>$167.70</td>
+                            <td>$0.00</td>
+                            <td class="negative">$-167.70</td>
+                            <td class="negative">-100.00%</td>
+                        </tr>
+        
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="timestamp">Last updated: 2026-01-11 00:59:38</div>
+        </div>
+    </body>
+    </html>
+    
