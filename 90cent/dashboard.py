@@ -43,6 +43,7 @@ LOG_FILE = get_file_path("trading_bot.log")
 POSITIONS_FILE = get_file_path("positions.json")
 RESET_FILE = get_file_path("pnl_reset.json")
 TRADING_STATUS_FILE = get_file_path("trading_status.json")
+RESOLUTION_CACHE_FILE = get_file_path("resolution_cache.json")
 
 # All symbols the dashboard tracks (superset of what may be enabled)
 ALL_SYMBOLS = ["btc", "eth", "sol", "xrp"]
@@ -150,6 +151,94 @@ def get_market_name(condition_id):
 
     # Return shortened ID if nothing found
     return condition_id[:10] + "..."
+
+# --- Market Resolution Cache ---
+_resolution_cache = None
+
+def _load_resolution_cache():
+    global _resolution_cache
+    if _resolution_cache is not None:
+        return _resolution_cache
+    if os.path.exists(RESOLUTION_CACHE_FILE):
+        try:
+            with open(RESOLUTION_CACHE_FILE, "r") as f:
+                _resolution_cache = json.load(f)
+        except Exception:
+            _resolution_cache = {}
+    else:
+        _resolution_cache = {}
+    return _resolution_cache
+
+def _save_resolution_cache():
+    if _resolution_cache is not None:
+        try:
+            with open(RESOLUTION_CACHE_FILE, "w") as f:
+                json.dump(_resolution_cache, f, indent=2)
+        except Exception as e:
+            logger.debug(f"Failed to save resolution cache: {e}")
+
+def check_market_resolution(condition_id, buy_side):
+    """Check Gamma API whether buy_side won or lost. Returns 'win', 'loss', or 'pending'."""
+    cache = _load_resolution_cache()
+    cache_key = f"{condition_id}:{buy_side}"
+    if cache_key in cache:
+        return cache[cache_key]
+
+    try:
+        url = f"https://gamma-api.polymarket.com/markets?condition_ids={condition_id}&limit=1"
+        logger.info(f"RESOLUTION: Checking {condition_id[:16]}... side={buy_side}")
+        resp = http_requests.get(url, timeout=5)
+        if resp.status_code != 200:
+            logger.warning(f"RESOLUTION: API returned {resp.status_code} for {condition_id[:16]}")
+            return "pending"
+
+        markets = resp.json()
+        if not markets or not isinstance(markets, list):
+            return "pending"
+
+        market = markets[0]
+        if not market.get("closed"):
+            return "pending"
+
+        outcomes_raw = market.get("outcomes", "[]")
+        prices_raw = market.get("outcomePrices", "[]")
+        outcomes = json.loads(outcomes_raw) if isinstance(outcomes_raw, str) else (outcomes_raw or [])
+        prices = json.loads(prices_raw) if isinstance(prices_raw, str) else (prices_raw or [])
+
+        if not outcomes or not prices:
+            return "pending"
+
+        # Build outcome -> resolved price map (e.g. {"UP": 1.0, "DOWN": 0.0})
+        outcome_map = {}
+        for i, name in enumerate(outcomes):
+            if i < len(prices):
+                try:
+                    outcome_map[name.upper()] = float(prices[i])
+                except (ValueError, TypeError):
+                    pass
+
+        # YES=Up, NO=Down
+        side_aliases = {"YES": ["YES", "UP"], "NO": ["NO", "DOWN"]}
+        aliases = side_aliases.get(buy_side.upper(), [buy_side.upper()])
+
+        resolved_price = None
+        for alias in aliases:
+            if alias in outcome_map:
+                resolved_price = outcome_map[alias]
+                break
+
+        if resolved_price is None:
+            return "pending"
+
+        result = "win" if resolved_price > 0.5 else "loss"
+        logger.info(f"RESOLUTION: {condition_id[:16]}... side={buy_side} -> {result} (outcome_map={outcome_map})")
+        cache[cache_key] = result
+        _save_resolution_cache()
+        return result
+
+    except Exception as e:
+        logger.warning(f"RESOLUTION: Failed for {condition_id[:16]}...: {e}")
+        return "pending"
 
 def parse_trades_from_logs():
     """Parse logs to extract trade history."""
@@ -439,12 +528,17 @@ def calculate_stats(trades):
             "win_rate": 0, "trade_count": 0, "daily_pnl": [], "wins": 0, "losses": 0
         }
 
+    # Reset in-memory resolution cache so it reloads from disk
+    global _resolution_cache
+    _resolution_cache = None
+
     # Track buys, sells, and claims per condition_id
     positions_traded = defaultdict(lambda: {
         "bought": 0, "bought_value": 0,
         "sold": 0, "sold_value": 0,  # Stop-loss sells
         "claimed": 0, "claimed_value": 0,  # Redeemed at $1.00
-        "avg_buy_price": 0, "date": None, "timestamp": None
+        "avg_buy_price": 0, "date": None, "timestamp": None,
+        "buy_side": None  # YES or NO
     })
 
     for t in trades:
@@ -454,6 +548,8 @@ def calculate_stats(trades):
             positions_traded[cid]["bought_value"] += t["value"]
             positions_traded[cid]["date"] = t["timestamp"].split(" ")[0]
             positions_traded[cid]["timestamp"] = t["timestamp"]
+            if t.get("side"):
+                positions_traded[cid]["buy_side"] = t["side"]
         elif t["type"] == "CLAIM":
             # Claims always return $1.00 per share
             positions_traded[cid]["claimed"] += t["size"]
@@ -503,19 +599,26 @@ def calculate_stats(trades):
             else:
                 losses += 1
 
-        elif data["bought"] > 0 and data["avg_buy_price"] >= 0.98 and total_exited == 0:
-            # High-confidence buy (98c+) with NO sell = likely claimed at $1.00
-            # This covers positions where auto-claim happened but wasn't logged
-            # Only count if position is old enough to have resolved (>35 min)
+        elif data["bought"] > 0 and total_exited == 0:
+            # No sell/claim logged — check Gamma API for actual resolution
             buy_timestamp = data.get("timestamp", "")
-            if buy_timestamp and buy_timestamp < resolution_cutoff:
-                # Assume claimed at $1.00
-                assumed_return = data["bought"]  # $1.00 per share
-                total_invested += data["bought_value"]
-                total_returned += assumed_return
-                daily[date]["invested"] += data["bought_value"]
-                daily[date]["returned"] += assumed_return
-                wins += 1
+            buy_side = data.get("buy_side")
+            if buy_timestamp and buy_timestamp < resolution_cutoff and buy_side:
+                resolution = check_market_resolution(cid, buy_side)
+                logger.info(f"STATS: {cid[:16]}... no exit, side={buy_side}, resolution={resolution}, bought={data['bought']}")
+                if resolution == "win":
+                    returned = data["bought"]  # $1.00 per share
+                    total_invested += data["bought_value"]
+                    total_returned += returned
+                    daily[date]["invested"] += data["bought_value"]
+                    daily[date]["returned"] += returned
+                    wins += 1
+                elif resolution == "loss":
+                    total_invested += data["bought_value"]
+                    daily[date]["invested"] += data["bought_value"]
+                    losses += 1
+            elif not buy_side:
+                logger.warning(f"STATS: {cid[:16]}... no exit, buy_side=None — skipping resolution check")
 
         # Positions with sells = already counted above
         # Positions with low buy price (<98c) without exits = still pending
@@ -552,14 +655,16 @@ def calculate_stats(trades):
                 trades_24h += 1
             if date >= week_ago:
                 trades_7d += 1
-        elif data["bought"] > 0 and data["avg_buy_price"] >= 0.98 and total_exited == 0:
-            # Assumed win (high confidence buy, old enough to have resolved)
+        elif data["bought"] > 0 and total_exited == 0:
             buy_timestamp = data.get("timestamp", "")
-            if buy_timestamp and buy_timestamp < resolution_cutoff:
-                if date >= yesterday:
-                    trades_24h += 1
-                if date >= week_ago:
-                    trades_7d += 1
+            buy_side = data.get("buy_side")
+            if buy_timestamp and buy_timestamp < resolution_cutoff and buy_side:
+                resolution = check_market_resolution(cid, buy_side)
+                if resolution in ("win", "loss"):
+                    if date >= yesterday:
+                        trades_24h += 1
+                    if date >= week_ago:
+                        trades_7d += 1
 
     daily_stats = []
     cumulative_pnl = 0
@@ -1476,7 +1581,7 @@ def get_analytics():
                 if entry["size"] < 0.0001:
                     inventory[cid][side].pop(0)
 
-    # Assumed Wins: If a position hasn't sold and is > 30 mins old, assume it was claimed at $1.00
+    # Unmatched positions: check Gamma API for actual resolution
     from datetime import timedelta
     ref_ts = datetime.now()
     if sorted_trades:
@@ -1488,20 +1593,28 @@ def get_analytics():
         market = cid_to_market.get(cid, "Unknown")
         for side, entries in sides.items():
             for entry in entries:
-                # If more than 35 mins old (to be safe for 15m markets), assume win
                 if (ref_ts - entry["ts"]).total_seconds() > (35 * 60):
-                    trade_pnl = (entry["size"] * 1.0) - (entry["size"] * entry["price"])
-                    market_stats[market]["realized_pnl"] += trade_pnl
-                    market_stats[market]["trades"] += 1
-
-                    # Attribution: assume it closed ~16 mins after buy
-                    exit_ts = entry["ts"] + timedelta(minutes=16)
-                    hourly_pnl[exit_ts.hour] += trade_pnl
-                    hourly_pnl_by_date[exit_ts.strftime("%Y-%m-%d")][exit_ts.hour] += trade_pnl
-                    daily_pnl[exit_ts.strftime("%Y-%m-%d")] += trade_pnl
-
-                    hold_times["win"].append(16.0)
-                    market_stats[market]["wins"] += 1
+                    resolution = check_market_resolution(cid, side)
+                    if resolution == "win":
+                        trade_pnl = (entry["size"] * 1.0) - (entry["size"] * entry["price"])
+                        exit_ts = entry["ts"] + timedelta(minutes=16)
+                        market_stats[market]["realized_pnl"] += trade_pnl
+                        market_stats[market]["trades"] += 1
+                        hourly_pnl[exit_ts.hour] += trade_pnl
+                        hourly_pnl_by_date[exit_ts.strftime("%Y-%m-%d")][exit_ts.hour] += trade_pnl
+                        daily_pnl[exit_ts.strftime("%Y-%m-%d")] += trade_pnl
+                        hold_times["win"].append(16.0)
+                        market_stats[market]["wins"] += 1
+                    elif resolution == "loss":
+                        trade_pnl = -(entry["size"] * entry["price"])
+                        exit_ts = entry["ts"] + timedelta(minutes=16)
+                        market_stats[market]["realized_pnl"] += trade_pnl
+                        market_stats[market]["trades"] += 1
+                        hourly_pnl[exit_ts.hour] += trade_pnl
+                        hourly_pnl_by_date[exit_ts.strftime("%Y-%m-%d")][exit_ts.hour] += trade_pnl
+                        daily_pnl[exit_ts.strftime("%Y-%m-%d")] += trade_pnl
+                        hold_times["loss"].append(16.0)
+                        market_stats[market]["losses"] += 1
 
     # Convert to frontend format
     analytics_markets = []
